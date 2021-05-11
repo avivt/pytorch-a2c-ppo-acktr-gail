@@ -11,6 +11,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+from torch.utils.tensorboard import SummaryWriter
+
 from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.algo import gail
 from a2c_ppo_acktr.arguments import get_args
@@ -19,6 +21,8 @@ from a2c_ppo_acktr.model import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 
+EVAL_ENVS = {'three_arms': 'h_bandit-randchoose-v0',
+             'many_arms': 'h_bandit-randchoose-v1'}
 
 def main():
     args = get_args()
@@ -34,6 +38,8 @@ def main():
     eval_log_dir = log_dir + "_eval"
     utils.cleanup_log_dir(log_dir)
     utils.cleanup_log_dir(eval_log_dir)
+
+    summary_writer = SummaryWriter()
 
     torch.set_num_threads(1)
     device = torch.device("cuda:0" if args.cuda else "cpu")
@@ -123,6 +129,8 @@ def main():
             for info in infos:
                 if 'episode' in info.keys():
                     episode_rewards.append(info['episode']['r'])
+                    for k, v in info['episode'].items():
+                        summary_writer.add_scalar(f'training/{k}', v, j * args.num_processes * args.num_steps + args.num_processes * step)
 
             # If done then clean the history of observations.
             masks = torch.FloatTensor(
@@ -132,6 +140,7 @@ def main():
                  for info in infos])
             rollouts.insert(obs, recurrent_hidden_states, action,
                             action_log_prob, value, reward, masks, bad_masks)
+
 
         with torch.no_grad():
             next_value = actor_critic.get_value(
@@ -190,9 +199,12 @@ def main():
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
             obs_rms = utils.get_vec_normalize(envs).obs_rms
-            evaluate(actor_critic, obs_rms, args.env_name, args.seed,
-                     args.num_processes, eval_log_dir, device)
-
-
+            eval_r = {}
+            for eval_disp_name, eval_env_name in EVAL_ENVS.items():
+                print(eval_disp_name)
+                eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
+                                                  args.num_processes, eval_log_dir, device)
+                summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
+            summary_writer.add_scalars('eval_combined', eval_r, (j+1) * args.num_processes * args.num_steps)
 if __name__ == "__main__":
     main()

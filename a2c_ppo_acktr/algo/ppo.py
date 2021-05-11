@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from opacus import PrivacyEngine
+from opacus.utils.uniform_sampler import UniformWithReplacementSampler
 
 
 class PPO():
@@ -15,7 +17,9 @@ class PPO():
                  lr=None,
                  eps=None,
                  max_grad_norm=None,
-                 use_clipped_value_loss=True):
+                 use_clipped_value_loss=True,
+                 use_privacy=False,
+                 use_pcgrad=False):
 
         self.actor_critic = actor_critic
 
@@ -30,6 +34,15 @@ class PPO():
         self.use_clipped_value_loss = use_clipped_value_loss
 
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+        if use_privacy:
+            privacy_engine = PrivacyEngine(
+                actor_critic,
+                sample_rate=0.01,
+                alphas=[10, 100],
+                noise_multiplier=1.3,
+                max_grad_norm=1.0,
+            )
+            privacy_engine.attach(self.optimizer)
 
     def update(self, rollouts):
         advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
