@@ -31,6 +31,7 @@ class RolloutStorage(object):
 
         self.num_steps = num_steps
         self.step = 0
+        self.num_processes = num_processes
 
     def to(self, device):
         self.obs = self.obs.to(device)
@@ -138,6 +139,47 @@ class RolloutStorage(object):
                 adv_targ = None
             else:
                 adv_targ = advantages.view(-1, 1)[indices]
+
+            yield obs_batch, recurrent_hidden_states_batch, actions_batch, \
+                value_preds_batch, return_batch, masks_batch, old_action_log_probs_batch, adv_targ
+
+    def single_process_feed_forward_generator(self,
+                               advantages,
+                               process=0,
+                               num_mini_batch=None,
+                               mini_batch_size=None):
+        # each process corresponds to a different task
+        num_steps, num_processes = self.rewards.size()[0:2]
+        assert process < num_processes
+        batch_size = num_steps
+
+        if mini_batch_size is None:
+            assert batch_size >= num_mini_batch, (
+                "PPO requires the number of processes ({}) "
+                "* number of steps ({}) = {} "
+                "to be greater than or equal to the number of PPO mini batches ({})."
+                "".format(num_processes, num_steps, num_processes * num_steps,
+                          num_mini_batch))
+            mini_batch_size = batch_size // num_mini_batch
+        sampler = BatchSampler(
+            SubsetRandomSampler(range(batch_size)),
+            mini_batch_size,
+            drop_last=True)
+        for indices in sampler:
+            obs_batch = self.obs[:-1, process, :].view(-1, *self.obs.size()[2:])[indices]
+            recurrent_hidden_states_batch = self.recurrent_hidden_states[:-1, process, :].view(
+                -1, self.recurrent_hidden_states.size(-1))[indices]
+            actions_batch = self.actions[:, process, :].view(-1,
+                                                             self.actions.size(-1))[indices]
+            value_preds_batch = self.value_preds[:-1, process, :].view(-1, 1)[indices]
+            return_batch = self.returns[:-1, process, :].view(-1, 1)[indices]
+            masks_batch = self.masks[:-1, process, :].view(-1, 1)[indices]
+            old_action_log_probs_batch = self.action_log_probs[:, process, :].view(-1,
+                                                                    1)[indices]
+            if advantages is None:
+                adv_targ = None
+            else:
+                adv_targ = advantages[:, process, :].view(-1, 1)[indices]
 
             yield obs_batch, recurrent_hidden_states_batch, actions_batch, \
                 value_preds_batch, return_batch, masks_batch, old_action_log_probs_batch, adv_targ
