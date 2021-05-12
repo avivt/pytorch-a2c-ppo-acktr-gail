@@ -44,8 +44,7 @@ class PPO():
             privacy_engine = PrivacyEngine(
                 actor_critic,
                 sample_rate=0.01,
-                alphas=[10, 100],
-                noise_multiplier=1.3,
+                noise_multiplier=1.0,
                 max_grad_norm=1.0,
             )
             privacy_engine.attach(self.optimizer)
