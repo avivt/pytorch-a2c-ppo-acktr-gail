@@ -87,7 +87,8 @@ def make_vec_envs(env_name,
                   log_dir,
                   device,
                   allow_early_resets,
-                  num_frame_stack=None):
+                  num_frame_stack=None,
+                  multi_task=False):
     envs = [
         make_env(env_name, seed, i, log_dir, allow_early_resets)
         for i in range(num_processes)
@@ -105,6 +106,10 @@ def make_vec_envs(env_name,
             envs = VecNormalize(envs, gamma=gamma)
 
     envs = VecPyTorch(envs, device)
+
+    if multi_task:
+        for i in range(num_processes):
+            envs.set_task_id(indices=i)
 
     if num_frame_stack is not None:
         envs = VecPyTorchFrameStack(envs, num_frame_stack, device)
@@ -175,6 +180,13 @@ class VecPyTorch(VecEnvWrapper):
         obs = self.venv.reset()
         obs = torch.from_numpy(obs).float().to(self.device)
         return obs
+
+    def set_task_id(self, indices):
+        self.venv.env_method(method_name="set_task_id", task_id=1, indices=indices)
+        # self.venv.env_method(method_name="reset", indices=indices)
+
+    def get_task_id(self, indices):
+        return self.venv.get_attr(attr_name="task_id", indices=indices)
 
     def step_async(self, actions):
         if isinstance(actions, torch.LongTensor):

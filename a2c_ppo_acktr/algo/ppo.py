@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from opacus import PrivacyEngine
 from opacus.utils.uniform_sampler import UniformWithReplacementSampler
+from pcgrad import PCGrad
 
 
 class PPO():
@@ -36,6 +37,9 @@ class PPO():
         self.use_clipped_value_loss = use_clipped_value_loss
 
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+        self.use_pcgrad = use_pcgrad
+        if use_pcgrad:
+            self.optimizer = PCGrad(self.optimizer)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
@@ -102,7 +106,10 @@ class PPO():
                 self.optimizer.zero_grad()
                 # (value_loss * self.value_loss_coef + action_loss -
                 #  dist_entropy * self.entropy_coef).backward()
-                total_loss.backward()
+                if self.use_pcgrad:
+                    self.optimizer.pc_backward(task_losses)
+                else:
+                    total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
                                          self.max_grad_norm)
                 self.optimizer.step()
