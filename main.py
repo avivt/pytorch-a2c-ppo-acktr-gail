@@ -75,6 +75,7 @@ def main():
             max_grad_norm=args.max_grad_norm,
             num_tasks=args.num_processes,
             use_pcgrad=args.use_pcgrad,
+            use_noisygrad=args.use_noisygrad,
             use_privacy=args.use_privacy)
     elif args.algo == 'acktr':
         agent = algo.A2C_ACKTR(
@@ -103,10 +104,12 @@ def main():
 
         for step in range(args.num_steps):
             # Sample actions
+            actor_critic.eval()
             with torch.no_grad():
                 value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
                     rollouts.obs[step], rollouts.recurrent_hidden_states[step],
                     rollouts.masks[step])
+            actor_critic.train()
 
             # Obser reward and next obs
             obs, reward, done, infos = envs.step(action)
@@ -126,11 +129,12 @@ def main():
             rollouts.insert(obs, recurrent_hidden_states, action,
                             action_log_prob, value, reward, masks, bad_masks)
 
-
+        actor_critic.eval()
         with torch.no_grad():
             next_value = actor_critic.get_value(
                 rollouts.obs[-1], rollouts.recurrent_hidden_states[-1],
                 rollouts.masks[-1]).detach()
+        actor_critic.train()
 
         rollouts.compute_returns(next_value, args.use_gae, args.gamma,
                                  args.gae_lambda, args.use_proper_time_limits)
@@ -167,6 +171,7 @@ def main():
 
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
+            actor_critic.eval()
             obs_rms = utils.get_vec_normalize(envs).obs_rms
             eval_r = {}
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
@@ -175,5 +180,6 @@ def main():
                                                   args.num_processes, eval_log_dir, device)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
             summary_writer.add_scalars('eval_combined', eval_r, (j+1) * args.num_processes * args.num_steps)
+            actor_critic.train()
 if __name__ == "__main__":
     main()

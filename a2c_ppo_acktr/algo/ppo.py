@@ -5,6 +5,7 @@ import torch.optim as optim
 from opacus import PrivacyEngine
 from opacus.utils.uniform_sampler import UniformWithReplacementSampler
 from pcgrad import PCGrad
+from noisygrad import NoisyGrad
 
 
 class PPO():
@@ -21,6 +22,7 @@ class PPO():
                  use_clipped_value_loss=True,
                  use_privacy=False,
                  use_pcgrad=False,
+                 use_noisygrad=False,
                  num_tasks=0):
 
         self.actor_critic = actor_critic
@@ -38,8 +40,12 @@ class PPO():
 
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
         self.use_pcgrad = use_pcgrad
+        self.use_noisygrad = use_noisygrad
+        self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
+        if use_noisygrad:
+            self.optimizer = NoisyGrad(self.optimizer, max_grad_norm=0.1*num_mini_batch, noise_ratio=1.0)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
@@ -107,6 +113,8 @@ class PPO():
                 #  dist_entropy * self.entropy_coef).backward()
                 if self.use_pcgrad:
                     self.optimizer.pc_backward(task_losses)
+                elif self.use_noisygrad:
+                    self.optimizer.noisy_backward(task_losses)
                 else:
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
