@@ -22,6 +22,7 @@ from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 
 EVAL_ENVS = {'three_arms': 'h_bandit-randchoose-v0',
+             'five_arms': 'h_bandit-randchoose-v2',
              'many_arms': 'h_bandit-randchoose-v1'}
 
 def main():
@@ -52,6 +53,13 @@ def main():
         envs.action_space,
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
+
+    if (args.continue_from_epoch > 0) and args.save_dir != "":
+        save_path = os.path.join(args.save_dir, args.algo)
+        actor_critic_, loaded_obs_rms_ = torch.load(os.path.join(save_path,
+                                                                   args.env_name +
+                                                                   "-epoch-{}.pt".format(args.continue_from_epoch)))
+        actor_critic.load_state_dict(actor_critic_.state_dict())
 
     if args.algo == 'a2c':
         agent = algo.A2C_ACKTR(
@@ -94,7 +102,7 @@ def main():
     start = time.time()
     num_updates = int(
         args.num_env_steps) // args.num_steps // args.num_processes
-    for j in range(num_updates):
+    for j in range(args.continue_from_epoch, args.continue_from_epoch+num_updates):
 
         if args.use_linear_lr_decay:
             # decrease learning rate linearly

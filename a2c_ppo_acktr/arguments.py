@@ -164,6 +164,11 @@ def get_args():
         action='store_true',
         default=False,
         help='use differentially private SGD in ppo')
+    parser.add_argument(
+        '--continue_from_epoch',
+        type=int,
+        default=0,
+        help='load previous training (from model save dir) and continue')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

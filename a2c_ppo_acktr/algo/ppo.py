@@ -45,7 +45,7 @@ class PPO():
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
         if use_noisygrad:
-            self.optimizer = NoisyGrad(self.optimizer, max_grad_norm=0.1*num_mini_batch, noise_ratio=1.0)
+            self.optimizer = NoisyGrad(self.optimizer, max_grad_norm=num_mini_batch, noise_ratio=1.3)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
