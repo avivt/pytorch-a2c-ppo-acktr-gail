@@ -4,8 +4,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from opacus import PrivacyEngine
 from opacus.utils.uniform_sampler import UniformWithReplacementSampler
-from pcgrad import PCGrad
-from noisygrad import NoisyGrad
+from grad_tools.pcgrad import PCGrad
+from grad_tools.noisygrad import NoisyGrad
 
 
 class PPO():
