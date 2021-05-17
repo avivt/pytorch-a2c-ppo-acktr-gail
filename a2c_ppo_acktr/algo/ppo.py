@@ -23,6 +23,8 @@ class PPO():
                  use_privacy=False,
                  use_pcgrad=False,
                  use_noisygrad=False,
+                 max_task_grad_norm=1.0,
+                 grad_noise_ratio=1.0,
                  num_tasks=0):
 
         self.actor_critic = actor_critic
@@ -39,19 +41,22 @@ class PPO():
         self.use_clipped_value_loss = use_clipped_value_loss
 
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+        self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
         self.use_noisygrad = use_noisygrad
         self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
         if use_noisygrad:
-            self.optimizer = NoisyGrad(self.optimizer, max_grad_norm=num_mini_batch, noise_ratio=1.3)
+            self.optimizer = NoisyGrad(self.optimizer,
+                                       max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                       noise_ratio=grad_noise_ratio)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
                 sample_rate=0.01,
-                noise_multiplier=1.0,
-                max_grad_norm=1.0,
+                noise_multiplier=grad_noise_ratio,
+                max_grad_norm=max_task_grad_norm,
             )
             privacy_engine.attach(self.optimizer)
 

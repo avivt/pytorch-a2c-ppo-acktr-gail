@@ -169,6 +169,21 @@ def get_args():
         type=int,
         default=0,
         help='load previous training (from model save dir) and continue')
+    parser.add_argument(
+        '--max_task_grad_norm',
+        type=float,
+        default=1.0,
+        help='per-task or per-sample gradient clipping in noisy_grad and dp_sgd')
+    parser.add_argument(
+        '--grad_noise_ratio',
+        type=float,
+        default=1.0,
+        help='gradient noise ratio for noisy_grad and dp_sgd')
+    parser.add_argument(
+        '--task_steps',
+        type=int,
+        default=20,
+        help='number of steps in each task')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

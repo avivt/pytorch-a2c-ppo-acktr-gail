@@ -46,7 +46,7 @@ def main():
     device = torch.device("cuda:0" if args.cuda else "cpu")
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
-                         args.gamma, args.log_dir, device, False)
+                         args.gamma, args.log_dir, device, False, steps=args.task_steps)
 
     actor_critic = Policy(
         envs.observation_space.shape,
@@ -84,7 +84,9 @@ def main():
             num_tasks=args.num_processes,
             use_pcgrad=args.use_pcgrad,
             use_noisygrad=args.use_noisygrad,
-            use_privacy=args.use_privacy)
+            use_privacy=args.use_privacy,
+            max_task_grad_norm=args.max_task_grad_norm,
+            grad_noise_ratio=args.grad_noise_ratio)
     elif args.algo == 'acktr':
         agent = algo.A2C_ACKTR(
             actor_critic, args.value_loss_coef, args.entropy_coef, acktr=True)
@@ -185,7 +187,7 @@ def main():
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
                 print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
-                                                  args.num_processes, eval_log_dir, device)
+                                                  args.num_processes, eval_log_dir, device, steps=args.task_steps)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
             summary_writer.add_scalars('eval_combined', eval_r, (j+1) * args.num_processes * args.num_steps)
             actor_critic.train()
