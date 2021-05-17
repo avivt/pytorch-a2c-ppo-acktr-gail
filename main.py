@@ -42,13 +42,13 @@ def main():
     utils.cleanup_log_dir(eval_log_dir)
 
     summary_writer = SummaryWriter()
-    # summary_writer.add_hparams({'task_steps': args.task_steps,
-    #                             'grad_noise_ratio': args.grad_noise_ratio,
-    #                             'max_task_grad_norm': args.max_task_grad_norm,
-    #                             'use_noisygrad': args.use_noisygrad,
-    #                             'use_pcgrad': args.use_noisygrad,
-    #                             'use_privacy': args.use_privacy,
-    #                             'cmd': ' '.join(sys.argv[1:])}, {})
+    summary_writer.add_hparams({'task_steps': args.task_steps,
+                                'grad_noise_ratio': args.grad_noise_ratio,
+                                'max_task_grad_norm': args.max_task_grad_norm,
+                                'use_noisygrad': args.use_noisygrad,
+                                'use_pcgrad': args.use_noisygrad,
+                                'use_privacy': args.use_privacy,
+                                'cmd': ' '.join(sys.argv[1:])}, {})
 
     torch.set_num_threads(1)
     device = torch.device("cuda:0" if args.cuda else "cpu")
