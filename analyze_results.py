@@ -56,18 +56,53 @@ def main():
         #     actor_critic.train()
 
 
+    # res_search = [
+    #     [{'use_noisygrad': False,
+    #       'task_steps': 20}, 'baseline'],
+    #     [{'use_noisygrad': True,
+    #       'task_steps': 20,
+    #      'grad_noise_ratio': 1.7}, 'noise=1.7'],
+    #     [{'use_noisygrad': True,
+    #       'task_steps': 20,
+    #      'grad_noise_ratio': 1.5}, 'noise=1.5'],
+    #     [{'use_noisygrad': True,
+    #       'task_steps': 20,
+    #       'grad_noise_ratio': 1.0}, 'noise=1.0']
+    # ]
+
     res_search = [
         [{'use_noisygrad': False,
           'task_steps': 20}, 'baseline'],
+        # [{'use_privacy': True,
+        #   'task_steps': 20,
+        #  'grad_noise_ratio': 1.0}, 'privacy=1.0'],
+        # [{'use_privacy': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.3}, 'privacy=1.3'],
+        # [{'use_noisygrad': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.0,
+        #   'max_task_grad_norm': 1.0}, 'noise=1.0 norm 1.0'],
         [{'use_noisygrad': True,
           'task_steps': 20,
-         'grad_noise_ratio': 1.7}, 'noise=1.7'],
-        [{'use_noisygrad': True,
-          'task_steps': 20,
-         'grad_noise_ratio': 1.5}, 'noise=1.5'],
-        [{'use_noisygrad': True,
-          'task_steps': 20,
-          'grad_noise_ratio': 1.0}, 'noise=1.0']
+          'grad_noise_ratio': 1.0,
+          'max_task_grad_norm': 0.5}, 'noise=1.0 norm 0.5'],
+        # [{'use_noisygrad': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.0,
+        #   'max_task_grad_norm': 0.2}, 'noise=1.0 norm 0.2'],
+        # [{'use_noisygrad': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.3,
+        #   'max_task_grad_norm': 1.0}, 'noise=1.3'],
+        # [{'use_noisygrad': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.5,
+        #   'max_task_grad_norm': 1.0}, 'noise=1.5'],
+        # [{'use_noisygrad': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.7,
+        #   'max_task_grad_norm': 1.0}, 'noise=1.7']
     ]
 
     for s in res_search:
@@ -99,10 +134,10 @@ def main():
             res_five_mean = np.mean(res_five[:, :, 1], axis=0)
             res_five_std = np.std(res_five[:, :, 1], axis=0)
             plt.errorbar(t, res_many_mean, res_many_std, label=s[1])
-            plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
-        # for i in range(res_many.shape[0]):
-        #     plt.plot(res_many[i,:,0], res_many[i,:,1], label='noisygrad='+str(res_type[i]))
-        #     plt.plot(res_five[i, :, 0], res_five[i, :, 1], label='noisygrad='+str(res_type[i]))
+            # plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
+            # for i in range(res_many.shape[0]):
+            #     plt.plot(res_many[i,:,0], res_many[i,:,1], label=s[1])
+            #     plt.plot(res_five[i, :, 0], res_five[i, :, 1], label=s[1])
     plt.legend()
     plt.show()
     import pdb; pdb.set_trace()
