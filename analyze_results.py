@@ -55,29 +55,54 @@ def main():
         #     summary_writer.add_scalars('eval_combined', eval_r, (j+1) * args.num_processes * args.num_steps)
         #     actor_critic.train()
 
-    steps = 20
-    noisygrad = True
 
-    res_many = []
-    res_five = []
-    res_type = []
-    for subdir, dirs, files in os.walk(logdir):
-        for name in dirs:
-            load_name = os.path.join(logdir, name, 'log_dict.pkl')
-            try:
-                log_dict = load_obj(load_name)
-            except:
-                continue
-            if log_dict['task_steps'] == steps:
-                res_many.append(log_dict['many_arms'])
-                res_five.append(log_dict['five_arms'])
-                res_type.append(log_dict['use_noisygrad'])
+    res_search = [
+        [{'use_noisygrad': False,
+          'task_steps': 20}, 'baseline'],
+        [{'use_noisygrad': True,
+          'task_steps': 20,
+         'grad_noise_ratio': 1.7}, 'noise=1.7'],
+        [{'use_noisygrad': True,
+          'task_steps': 20,
+         'grad_noise_ratio': 1.5}, 'noise=1.5'],
+        [{'use_noisygrad': True,
+          'task_steps': 20,
+          'grad_noise_ratio': 1.0}, 'noise=1.0']
+    ]
 
-    res_many = np.array(res_many)
-    res_five = np.array(res_five)
-    for i in range(res_many.shape[0]):
-        plt.plot(res_many[i,:,0], res_many[i,:,1], label='noisygrad='+str(res_type[i]))
-        plt.plot(res_five[i, :, 0], res_five[i, :, 1], label='noisygrad='+str(res_type[i]))
+    for s in res_search:
+        res_many = []
+        res_five = []
+        res_type = []
+        for subdir, dirs, files in os.walk(logdir):
+            for name in dirs:
+                load_name = os.path.join(logdir, name, 'log_dict.pkl')
+                try:
+                    log_dict = load_obj(load_name)
+                except:
+                    continue
+                is_match = True
+                for key, val in s[0].items():
+                    if log_dict[key] != val:
+                        is_match = False
+                if is_match:
+                    res_many.append(log_dict['many_arms'])
+                    res_five.append(log_dict['five_arms'])
+                    res_type.append(log_dict['use_noisygrad'])
+
+        if len(res_many) > 0:
+            res_many = np.array(res_many)
+            res_five = np.array(res_five)
+            t = res_many[0, :, 0]
+            res_many_mean = np.mean(res_many[:, :, 1], axis=0)
+            res_many_std = np.std(res_many[:, :, 1], axis=0)
+            res_five_mean = np.mean(res_five[:, :, 1], axis=0)
+            res_five_std = np.std(res_five[:, :, 1], axis=0)
+            plt.errorbar(t, res_many_mean, res_many_std, label=s[1])
+            plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
+        # for i in range(res_many.shape[0]):
+        #     plt.plot(res_many[i,:,0], res_many[i,:,1], label='noisygrad='+str(res_type[i]))
+        #     plt.plot(res_five[i, :, 0], res_five[i, :, 1], label='noisygrad='+str(res_type[i]))
     plt.legend()
     plt.show()
     import pdb; pdb.set_trace()
