@@ -59,11 +59,13 @@ class TestGrad():
             for g_j in grads:
                 g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
                 g_i = (g_i_g_j > 0) * g_i
-            if noise_std > 0:
-                g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
+            # if noise_std > 0:
+            #     g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         merged_grad[shared] = torch.stack([g[shared]
                                            for g in pc_grad]).mean(dim=0)
+        if noise_std > 0:
+            merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
         return merged_grad

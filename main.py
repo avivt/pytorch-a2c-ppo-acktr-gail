@@ -23,8 +23,11 @@ from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 from a2c_ppo_acktr.utils import save_obj, load_obj
 
-EVAL_ENVS = {'three_arms': 'h_bandit-randchoose-v0',
-             'five_arms': 'h_bandit-randchoose-v2',
+# EVAL_ENVS = {'three_arms': 'h_bandit-randchoose-v0',
+#              'five_arms': 'h_bandit-randchoose-v2',
+#              'many_arms': 'h_bandit-randchoose-v1'}
+
+EVAL_ENVS = {'five_arms': 'h_bandit-randchoose-v2',
              'many_arms': 'h_bandit-randchoose-v1'}
 
 def main():
@@ -32,6 +35,7 @@ def main():
 
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
+    np.random.seed(args.seed)
 
     if args.cuda and torch.cuda.is_available() and args.cuda_deterministic:
         torch.backends.cudnn.benchmark = False
@@ -199,17 +203,17 @@ def main():
                 getattr(utils.get_vec_normalize(envs), 'obs_rms', None)
             ], os.path.join(save_path, args.env_name + "-epoch-{}.pt".format(j)))
 
-        if j % args.log_interval == 0 and len(episode_rewards) > 1:
-            total_num_steps = (j + 1) * args.num_processes * args.num_steps
-            end = time.time()
-            print(
-                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
-                .format(j, total_num_steps,
-                        int(total_num_steps / (end - start)),
-                        len(episode_rewards), np.mean(episode_rewards),
-                        np.median(episode_rewards), np.min(episode_rewards),
-                        np.max(episode_rewards), dist_entropy, value_loss,
-                        action_loss))
+        # if j % args.log_interval == 0 and len(episode_rewards) > 1:
+        #     total_num_steps = (j + 1) * args.num_processes * args.num_steps
+        #     end = time.time()
+        #     print(
+        #         "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
+        #         .format(j, total_num_steps,
+        #                 int(total_num_steps / (end - start)),
+        #                 len(episode_rewards), np.mean(episode_rewards),
+        #                 np.median(episode_rewards), np.min(episode_rewards),
+        #                 np.max(episode_rewards), dist_entropy, value_loss,
+        #                 action_loss))
 
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
@@ -217,7 +221,7 @@ def main():
             obs_rms = utils.get_vec_normalize(envs).obs_rms
             eval_r = {}
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
-                print(eval_disp_name)
+                # print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
                                                   args.num_processes, logdir, device, steps=args.task_steps)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
