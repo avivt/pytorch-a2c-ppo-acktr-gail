@@ -23,6 +23,7 @@ class PPO():
                  use_clipped_value_loss=True,
                  use_privacy=False,
                  use_pcgrad=False,
+                 use_testgrad=False,
                  use_noisygrad=False,
                  max_task_grad_norm=1.0,
                  grad_noise_ratio=1.0,
@@ -44,10 +45,12 @@ class PPO():
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
         self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
+        self.use_testgrad = use_testgrad
         self.use_noisygrad = use_noisygrad
         self.use_privacy = use_privacy
         if use_pcgrad:
-            # self.optimizer = PCGrad(self.optimizer)
+            self.optimizer = PCGrad(self.optimizer)
+        if use_testgrad:
             self.optimizer = TestGrad(self.optimizer)
         if use_noisygrad:
             self.optimizer = NoisyGrad(self.optimizer,
@@ -119,6 +122,8 @@ class PPO():
                 # (value_loss * self.value_loss_coef + action_loss -
                 #  dist_entropy * self.entropy_coef).backward()
                 if self.use_pcgrad:
+                    self.optimizer.pc_backward(task_losses)
+                elif self.use_testgrad:
                     self.optimizer.pc_backward(task_losses)
                 elif self.use_noisygrad:
                     self.optimizer.noisy_backward(task_losses)

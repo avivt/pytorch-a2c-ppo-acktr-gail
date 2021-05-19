@@ -44,6 +44,8 @@ def main():
         logdir = logdir + '_noisygrad'
     elif args.use_pcgrad:
         logdir = logdir + '_pcgrad'
+    elif args.use_testgrad:
+        logdir = logdir + '_testgrad'
     logdir = os.path.join('runs', logdir)
     logdir = os.path.join(os.path.expanduser(args.log_dir), logdir)
     utils.cleanup_log_dir(logdir)
@@ -55,6 +57,7 @@ def main():
         'max_task_grad_norm': args.max_task_grad_norm,
         'use_noisygrad': args.use_noisygrad,
         'use_pcgrad': args.use_noisygrad,
+        'use_testgrad': args.use_testgrad,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
         'cmd': ' '.join(sys.argv[1:])
@@ -68,7 +71,9 @@ def main():
                                 'max_task_grad_norm': args.max_task_grad_norm,
                                 'use_noisygrad': args.use_noisygrad,
                                 'use_pcgrad': args.use_noisygrad,
+                                'use_testgrad': args.use_testgrad,
                                 'use_privacy': args.use_privacy,
+                                'seed': args.seed,
                                 'cmd': ' '.join(sys.argv[1:])}, {})
 
     torch.set_num_threads(1)
@@ -113,6 +118,7 @@ def main():
             num_tasks=args.num_processes,
             use_pcgrad=args.use_pcgrad,
             use_noisygrad=args.use_noisygrad,
+            use_testgrad=args.use_testgrad,
             use_privacy=args.use_privacy,
             max_task_grad_norm=args.max_task_grad_norm,
             grad_noise_ratio=args.grad_noise_ratio)
