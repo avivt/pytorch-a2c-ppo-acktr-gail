@@ -9,8 +9,10 @@ import random
 
 
 class TestGrad():
-    def __init__(self, optimizer):
+    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0):
         self._optim = optimizer
+        self._max_grad_norm = max_grad_norm
+        self._noise_ratio = noise_ratio
         return
 
     @property
@@ -48,11 +50,17 @@ class TestGrad():
     def _project_conflicting(self, grads, has_grads, shapes=None):
         shared = torch.stack(has_grads).prod(0).bool()
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
+        grad_norms = []
+        for g_i in pc_grad:
+            grad_norms.append(g_i.norm())
+        noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
         for g_i in pc_grad:
             random.shuffle(grads)
             for g_j in grads:
                 g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
                 g_i = (g_i_g_j > 0) * g_i
+            if noise_std > 0:
+                g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         merged_grad[shared] = torch.stack([g[shared]
                                            for g in pc_grad]).mean(dim=0)

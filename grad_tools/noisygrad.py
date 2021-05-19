@@ -57,7 +57,7 @@ class NoisyGrad():
         for g_i in pc_grad:
             if g_i.norm() >= self._max_grad_norm:
                 g_i *= self._max_grad_norm / g_i.norm()
-                g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
+            g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         merged_grad[shared] = torch.stack([g[shared]
                                            for g in pc_grad]).mean(dim=0)
