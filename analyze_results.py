@@ -71,16 +71,29 @@ def main():
     # ]
 
     res_search = [
-        [{'use_noisygrad': False,
-          'use_privacy': False,
-          'use_pcgrad': False,
-          'seed': 2,
-          'task_steps': 20}, 'baseline'],
+        # [{'use_noisygrad': False,
+        #   'use_privacy': False,
+        #   'use_pcgrad': False,
+        #   'seed': 2,
+        #   'task_steps': 20}, 'baseline'],
         # [{'use_privacy': True,
         #   'task_steps': 20,
-        #  'grad_noise_ratio': 1.0}, 'privacy=1.0'],
-        [{'use_pcgrad': True,
-          'task_steps': 20}, 'pcgrad=1.0'],
+        #   'grad_noise_ratio': 1.0,
+        #   'max_task_grad_norm': 1.0}, 'privacy=1.0'],
+        # [{'use_privacy': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 0.2,
+        #   'max_task_grad_norm': 1.0}, 'privacy=0.2'],
+        [{'use_noisygrad': True,
+          'task_steps': 20}, 'noisygrad'],
+        # [{'use_pcgrad': True,
+        #   'task_steps': 20}, 'testgrad_'],
+        # [{'use_privacy': True,
+        #   'task_steps': 20,
+        #   'grad_noise_ratio': 1.0,
+        #   'max_task_grad_norm': 3.0}, 'privacy=1.0 grad norm 3.0'],
+        # [{'use_pcgrad': True,
+        #   'task_steps': 20}, 'pcgrad=1.0'],
         # [{'use_privacy': True,
         #   'task_steps': 20,
         #   'grad_noise_ratio': 1.3}, 'privacy=1.3'],
@@ -123,8 +136,6 @@ def main():
                 load_name = os.path.join(logdir, name, 'log_dict.pkl')
                 try:
                     log_dict = load_obj(load_name)
-                    import pdb;
-                    pdb.set_trace()
                 except:
                     continue
                 is_match = True
