@@ -112,7 +112,7 @@ class PPO():
                         value_loss = 0.5 * (return_batch - values).pow(2).mean()
                     task_losses.append(value_loss * self.value_loss_coef + action_loss -
                                        dist_entropy * self.entropy_coef)
-                total_loss = torch.stack(task_losses).sum()
+                total_loss = torch.stack(task_losses).mean()
                 self.optimizer.zero_grad()
                 # (value_loss * self.value_loss_coef + action_loss -
                 #  dist_entropy * self.entropy_coef).backward()

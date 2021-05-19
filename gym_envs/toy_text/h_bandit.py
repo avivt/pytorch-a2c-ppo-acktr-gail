@@ -119,9 +119,15 @@ class ConstantArms():
     def __init__(self, n=6, r_dist_name="6_v0"):
         self.arms = np.array(R_DISTS[r_dist_name])
         self.n = len(self.arms)
-        temp = self.arms.argsort()
-        ranks = np.empty_like(temp)
-        ranks[temp] = np.arange(self.n)
+        # temp = self.arms.argsort()
+        # ranks = np.empty_like(temp)
+        # ranks[temp] = np.arange(self.n)
+        inds = self.arms.argsort()
+        ranks = np.empty_like(inds)
+        # tmp = np.arange(self.n)
+        tmp = np.zeros(self.n)
+        tmp[-1] = self.n - 1
+        ranks[inds] = tmp
         self.ranks = ranks / (self.n-1)
         self.task_id = -1
 
@@ -137,9 +143,12 @@ class RandChooseArms():
         self.r_list = R_DISTS[r_dist_name]
         self.arms = np.array(self.r_list[np.random.randint(len(self.r_list))])
         self.n = len(self.arms)
-        temp = self.arms.argsort()
-        ranks = np.empty_like(temp)
-        ranks[temp] = np.arange(self.n)
+        inds = self.arms.argsort()
+        ranks = np.empty_like(inds)
+        # tmp = np.arange(self.n)
+        tmp = np.zeros(self.n)
+        tmp[-1] = self.n-1
+        ranks[inds] = tmp
         self.ranks = ranks / (self.n-1)
         self.task_id = -1
 
@@ -153,9 +162,15 @@ class RandChooseArms():
             task_id = self.task_id
         self.arms = np.array(self.r_list[task_id])
         self.n = len(self.arms)
-        temp = self.arms.argsort()
-        ranks = np.empty_like(temp)
-        ranks[temp] = np.arange(self.n)
+        # temp = self.arms.argsort()
+        # ranks = np.empty_like(temp)
+        # ranks[temp] = np.arange(self.n)
+        inds = self.arms.argsort()
+        ranks = np.empty_like(inds)
+        # tmp = np.arange(self.n)
+        tmp = np.zeros(self.n)
+        tmp[-1] = self.n - 1
+        ranks[inds] = tmp
         self.ranks = ranks / (self.n-1)
         return
 
@@ -164,9 +179,15 @@ class RandArms():
     def __init__(self, n=6):
         self.arms = generate_random_rewards()
         self.n = len(self.arms)
-        temp = self.arms.argsort()
-        ranks = np.empty_like(temp)
-        ranks[temp] = np.arange(self.n)
+        # temp = self.arms.argsort()
+        # ranks = np.empty_like(temp)
+        # ranks[temp] = np.arange(self.n)
+        inds = self.arms.argsort()
+        ranks = np.empty_like(inds)
+        # tmp = np.arange(self.n)
+        tmp = np.zeros(self.n)
+        tmp[-1] = self.n - 1
+        ranks[inds] = tmp
         self.ranks = ranks / (self.n-1)
         self.task_id = -1
 
@@ -176,8 +197,14 @@ class RandArms():
     def reset(self):
         self.arms = generate_random_rewards()
         self.n = len(self.arms)
-        temp = self.arms.argsort()
-        ranks = np.empty_like(temp)
-        ranks[temp] = np.arange(self.n)
+        # temp = self.arms.argsort()
+        # ranks = np.empty_like(temp)
+        # ranks[temp] = np.arange(self.n)
+        inds = self.arms.argsort()
+        ranks = np.empty_like(inds)
+        # tmp = np.arange(self.n)
+        tmp = np.zeros(self.n)
+        tmp[-1] = self.n - 1
+        ranks[inds] = tmp
         self.ranks = ranks / (self.n-1)
         return
