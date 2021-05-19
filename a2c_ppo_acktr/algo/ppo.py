@@ -6,6 +6,7 @@ from opacus import PrivacyEngine
 from opacus.utils.uniform_sampler import UniformWithReplacementSampler
 from grad_tools.pcgrad import PCGrad
 from grad_tools.noisygrad import NoisyGrad
+from grad_tools.testgrad import TestGrad
 
 
 class PPO():
@@ -46,7 +47,8 @@ class PPO():
         self.use_noisygrad = use_noisygrad
         self.use_privacy = use_privacy
         if use_pcgrad:
-            self.optimizer = PCGrad(self.optimizer)
+            # self.optimizer = PCGrad(self.optimizer)
+            self.optimizer = TestGrad(self.optimizer)
         if use_noisygrad:
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,
