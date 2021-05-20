@@ -32,7 +32,7 @@ EVAL_ENVS = {'five_arms': 'h_bandit-randchoose-v2',
 
 def main():
     args = get_args()
-
+    import random; random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
@@ -62,6 +62,7 @@ def main():
         'use_noisygrad': args.use_noisygrad,
         'use_pcgrad': args.use_pcgrad,
         'use_testgrad': args.use_testgrad,
+        'use_testgrad_median': args.use_testgrad_median,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
         'cmd': ' '.join(sys.argv[1:])
@@ -76,6 +77,7 @@ def main():
                                 'use_noisygrad': args.use_noisygrad,
                                 'use_pcgrad': args.use_pcgrad,
                                 'use_testgrad': args.use_testgrad,
+                                'use_testgrad_median': args.use_testgrad_median,
                                 'use_privacy': args.use_privacy,
                                 'seed': args.seed,
                                 'cmd': ' '.join(sys.argv[1:])}, {})
@@ -123,6 +125,7 @@ def main():
             use_pcgrad=args.use_pcgrad,
             use_noisygrad=args.use_noisygrad,
             use_testgrad=args.use_testgrad,
+            use_testgrad_median=args.use_testgrad_median,
             use_privacy=args.use_privacy,
             max_task_grad_norm=args.max_task_grad_norm,
             grad_noise_ratio=args.grad_noise_ratio)
@@ -220,13 +223,17 @@ def main():
             actor_critic.eval()
             obs_rms = utils.get_vec_normalize(envs).obs_rms
             eval_r = {}
+            printout = f'Seed {args.seed} Iter {j} '
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
                 # print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
                                                   args.num_processes, logdir, device, steps=args.task_steps)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
+                printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '
+
             summary_writer.add_scalars('eval_combined', eval_r, (j+1) * args.num_processes * args.num_steps)
+            print(printout)
             actor_critic.train()
 
     save_obj(log_dict, os.path.join(logdir, 'log_dict.pkl'))

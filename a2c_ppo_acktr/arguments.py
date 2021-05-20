@@ -160,6 +160,11 @@ def get_args():
         default=False,
         help='use testgrad in ppo')
     parser.add_argument(
+        '--use_testgrad_median',
+        action='store_true',
+        default=False,
+        help='use testgrad in ppo')
+    parser.add_argument(
         '--use_noisygrad',
         action='store_true',
         default=False,

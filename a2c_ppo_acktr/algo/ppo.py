@@ -24,6 +24,7 @@ class PPO():
                  use_privacy=False,
                  use_pcgrad=False,
                  use_testgrad=False,
+                 use_testgrad_median=False,
                  use_noisygrad=False,
                  max_task_grad_norm=1.0,
                  grad_noise_ratio=1.0,
@@ -51,7 +52,16 @@ class PPO():
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
         if use_testgrad:
-            self.optimizer = TestGrad(self.optimizer)
+            if use_testgrad_median:
+                self.optimizer = TestGrad(self.optimizer,
+                                          use_median=True,
+                                          max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                          noise_ratio=grad_noise_ratio)
+            else:
+                self.optimizer = TestGrad(self.optimizer,
+                                          use_median=False,
+                                          max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                          noise_ratio=grad_noise_ratio)
         if use_noisygrad:
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,
