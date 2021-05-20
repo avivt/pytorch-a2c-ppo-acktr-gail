@@ -87,8 +87,7 @@ def main():
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                          args.gamma, args.log_dir, device, False, steps=args.task_steps,
-                         free_exploration=args.free_exploration)
-
+                         free_exploration=args.free_exploration, recurrent=args.recurrent_policy)
     actor_critic = Policy(
         envs.observation_space.shape,
         envs.action_space,
@@ -228,7 +227,7 @@ def main():
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
                 # print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
-                                                  args.num_processes, logdir, device, steps=args.task_steps)
+                                                  args.num_processes, logdir, device, steps=args.task_steps, recurrent=args.recurrent_policy)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
                 printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '

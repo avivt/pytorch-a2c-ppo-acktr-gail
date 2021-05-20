@@ -94,7 +94,6 @@ def make_vec_envs(env_name,
         make_env(env_name, seed, i, log_dir, allow_early_resets, **kwargs)
         for i in range(num_processes)
     ]
-
     if len(envs) > 1:
         envs = SubprocVecEnv(envs)
     else:
