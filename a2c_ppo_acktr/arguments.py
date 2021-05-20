@@ -163,7 +163,7 @@ def get_args():
         '--use_testgrad_median',
         action='store_true',
         default=False,
-        help='use testgrad in ppo')
+        help='use testgrad with median gradient instead of mean in ppo')
     parser.add_argument(
         '--use_noisygrad',
         action='store_true',
@@ -194,6 +194,11 @@ def get_args():
         type=int,
         default=20,
         help='number of steps in each task')
+    parser.add_argument(
+        '--free_exploration',
+        type=int,
+        default=0,
+        help='number of steps in each task without reward')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()
