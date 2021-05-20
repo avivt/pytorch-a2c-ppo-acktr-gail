@@ -159,7 +159,7 @@ def main():
             # plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
             for i in range(res_many.shape[0]):
                 plt.plot(res_many[i,:,0], res_many[i,:,1], label=s[1])
-                plt.plot(res_five[i, :, 0], res_five[i, :, 1], label=s[1])
+                # plt.plot(res_five[i, :, 0], res_five[i, :, 1], label=s[1])
     plt.legend()
     plt.show()
     import pdb; pdb.set_trace()
