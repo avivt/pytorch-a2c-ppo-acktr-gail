@@ -86,8 +86,10 @@ class PPO():
 
         for e in range(self.ppo_epoch):
             if self.actor_critic.is_recurrent:
-                data_generators = [rollouts.recurrent_generator(
-                    advantages, self.num_mini_batch)]
+                # data_generators = [rollouts.recurrent_generator(
+                #     advantages, self.num_mini_batch)]
+                data_generators = [rollouts.single_process_recurrent_generator(
+                    advantages, self.num_mini_batch, process=i) for i in range(self.num_tasks)]
             elif self.num_tasks > 0:
                 assert self.num_tasks == rollouts.num_processes
                 data_generators = [rollouts.single_process_feed_forward_generator(
@@ -95,7 +97,6 @@ class PPO():
             else:
                 data_generators = [rollouts.feed_forward_generator(
                     advantages, self.num_mini_batch)]
-
             for sample in zip(*data_generators):
                 task_losses = []
                 for task in range(len(sample)):
