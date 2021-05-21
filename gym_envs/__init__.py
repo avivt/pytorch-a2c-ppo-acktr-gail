@@ -64,6 +64,26 @@ register(
 )
 
 register(
+    id='h_bandit-randchoose-v5',
+    entry_point='gym.envs.toy_text:HBanditEnv',
+    kwargs={'r_dist_name': 'train_10_b',
+            'steps': 20
+            },
+    max_episode_steps=20,
+    reward_threshold=0.7, # optimum = .8196
+)
+
+register(
+    id='h_bandit-randchoose-v6',
+    entry_point='gym.envs.toy_text:HBanditEnv',
+    kwargs={'r_dist_name': 'train_5_b',
+            'steps': 20
+            },
+    max_episode_steps=20,
+    reward_threshold=0.7, # optimum = .8196
+)
+
+register(
     id='h_bandit-randchoose-v1',
     entry_point='gym.envs.toy_text:HBanditEnv',
     kwargs={'r_dist_name': 'test',
