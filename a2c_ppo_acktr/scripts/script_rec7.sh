@@ -33,3 +33,4 @@ wait
 
 echo "check testgrad on 5 arms recurrent training, and noise 0.01, and free exploration, with the randomly generated domains"
 echo "the results with the manual domains are good (around 15) on 5 arms and 10 arms, but not on test arms. Hope training on the randomly generated domains will work better."
+echo "update: at 2500 iterations, seems the noise is too high, performance on training is low (around 9)"

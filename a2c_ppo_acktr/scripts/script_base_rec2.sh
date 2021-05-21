@@ -31,3 +31,4 @@ python3 main.py --env-name "h_bandit-randchoose-v2" --algo ppo --log-interval 25
 wait
 
 echo "check baseline on 5 arms recurrent training, and free exploration. My current results with testgrad show good generalization to 10 arms (around 15), so need to check if this happens with baseline too."
+echo "seemed baseline is pretty good: Iter 5900 five_arms 18.9 ten_arms 14.79 many_arms 10.08, even on test when training on manually set arms!"
