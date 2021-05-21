@@ -32,3 +32,4 @@ wait
 
 echo "check testgrad on 10 arms recurrent training, and noise 0.0, and free exploration"
 echo "results show several seeds around 9. This seems better than without testgrad on 10 arms, but need to check."
+echo "given the insight about train/test difference with the manually set arms, this may not be indicative of anything"

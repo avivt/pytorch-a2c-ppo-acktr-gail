@@ -31,3 +31,4 @@ python3 main.py --env-name "h_bandit-randchoose-v2" --algo ppo --log-interval 25
 wait
 
 echo "check testgrad on 5 arms recurrent training, and noise 0.003, and free exploration. Noise 0.01 seemed at iter 2000 to be too noisy with low performance (9) on training and on test (3)."
+echo "update: at iteration 5000, noise 0.01 got around 15 at both 5 and 10 arms! noise 0.003 got around 18 at 5 and some seeds got around 15 at 10, so somehow it solved the problem"
