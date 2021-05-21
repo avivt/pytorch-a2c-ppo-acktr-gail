@@ -53,6 +53,15 @@ register(
     reward_threshold=0.7, # optimum = .8196
 )
 
+register(
+    id='h_bandit-randchoose-v4',
+    entry_point='gym.envs.toy_text:HBanditEnv',
+    kwargs={'r_dist_name': 'train_15',
+            'steps': 20
+            },
+    max_episode_steps=20,
+    reward_threshold=0.7, # optimum = .8196
+)
 
 register(
     id='h_bandit-randchoose-v1',
