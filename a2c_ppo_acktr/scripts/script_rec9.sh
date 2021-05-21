@@ -20,3 +20,4 @@ wait
 
 echo "check testgrad on 5 arms recurrent training, and noise 0.01, without free exploration, with the randomly generated domains, to compare with the baseline."
 echo "this is with --num-steps 20. An experiment with --num-steps 100 does not seem to work well"
+echo "this does not seem to work well, which is strange because on my machine it did. Need to check this. Update - my machine was run with training on 10 and not 5..."
