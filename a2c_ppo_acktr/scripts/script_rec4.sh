@@ -31,4 +31,4 @@ python3 main.py --env-name "h_bandit-randchoose-v2" --algo ppo --log-interval 25
 wait
 
 echo "check testgrad on 5 arms recurrent training, and noise 0.01, and free exploration"
-echo "the results are good (12-13) on 5 arms and 10 arms, but not on test arms. Maybe this means that 5 and 10 that I made up are different than the random ones."
+echo "the results are good (around 15) on 5 arms and 10 arms, but not on test arms. Maybe this means that 5 and 10 that I made up are different than the random ones."
