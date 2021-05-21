@@ -19,3 +19,4 @@ python3 main.py --env-name "h_bandit-randchoose-v6" --algo ppo --log-interval 25
 wait
 
 echo "check testgrad on 5 arms recurrent training, and noise 0.01, without free exploration, with the randomly generated domains, to compare with the baseline."
+echo "this is with --num-steps 100. An experiment with --num-steps 20 seems to have worked well"
