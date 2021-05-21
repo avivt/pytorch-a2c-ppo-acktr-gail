@@ -28,6 +28,7 @@ from a2c_ppo_acktr.utils import save_obj, load_obj
 #              'many_arms': 'h_bandit-randchoose-v1'}
 
 EVAL_ENVS = {'five_arms': 'h_bandit-randchoose-v2',
+             'ten_arms': 'h_bandit-randchoose-v3',
              'many_arms': 'h_bandit-randchoose-v1'}
 
 def main():
