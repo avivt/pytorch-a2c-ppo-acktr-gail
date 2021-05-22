@@ -105,7 +105,7 @@ class HBanditEnv(Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
     def __init__(self, n=6, arms=None, steps=10, r_dist_name="6_v0", normalize_r=True, free_exploration=0,
-                 recurrent=False):
+                 recurrent=False, obs_recurrent=False):
         self.n = 6
         self.seed()
         if arms is None and r_dist_name == "random":
@@ -120,10 +120,14 @@ class HBanditEnv(Env):
         self.normalize_r = normalize_r
         self.free_exploration = free_exploration
         self.recurrent = recurrent
+        self.obs_recurrent = obs_recurrent
 
         self.action_space = spaces.Discrete(self.n)
         if self.recurrent:
             self.observation_space = spaces.Box(low=0.0, high=1.0, shape=[2], dtype=np.float32)
+        elif self.obs_recurrent:
+            self.observation_space = spaces.Box(low=0.0, high=1.0, shape=[2+self.n], dtype=np.float32)
+            self.obs = self.arms.arms
         else:
             self.observation_space = spaces.Box(low=0.0, high=1.0, shape=[2 * self.steps], dtype=np.float32)
 
@@ -143,6 +147,9 @@ class HBanditEnv(Env):
         self.lastaction = None
         if self.recurrent:
             next_state = np.array([0, 0])
+        elif self.obs_recurrent:
+            self.obs = self.arms.arms
+            next_state = np.concatenate((self.obs, np.array([0, 0])))
         else:
             next_state = self.s.copy()
         return next_state
@@ -161,6 +168,8 @@ class HBanditEnv(Env):
             reward = r_rank
         if self.recurrent:
             next_state = np.array([a, r])
+        elif self.obs_recurrent:
+            next_state = np.concatenate((self.obs, np.array([a, r])))
         else:
             next_state = self.s.copy()
         return next_state, reward, done, {"time": self.t}

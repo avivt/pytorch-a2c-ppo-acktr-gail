@@ -70,6 +70,8 @@ def main():
         'use_testgrad_median': args.use_testgrad_median,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
+        'recurrent': args.recurrent_policy,
+        'obs_recurrent': args.obs_recurrent,
         'cmd': ' '.join(sys.argv[1:])
     }
     for eval_disp_name, eval_env_name in EVAL_ENVS.items():
@@ -85,6 +87,8 @@ def main():
                                 'use_testgrad_median': args.use_testgrad_median,
                                 'use_privacy': args.use_privacy,
                                 'seed': args.seed,
+                                'recurrent': args.recurrent_policy,
+                                'obs_recurrent': args.obs_recurrent,
                                 'cmd': ' '.join(sys.argv[1:])}, {})
 
     torch.set_num_threads(1)
@@ -92,11 +96,12 @@ def main():
 
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                          args.gamma, args.log_dir, device, False, steps=args.task_steps,
-                         free_exploration=args.free_exploration, recurrent=args.recurrent_policy)
+                         free_exploration=args.free_exploration, recurrent=args.recurrent_policy,
+                         obs_recurrent=args.obs_recurrent)
     actor_critic = Policy(
         envs.observation_space.shape,
         envs.action_space,
-        base_kwargs={'recurrent': args.recurrent_policy})
+        base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
     actor_critic.to(device)
 
     if (args.continue_from_epoch > 0) and args.save_dir != "":
@@ -232,7 +237,8 @@ def main():
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
                 # print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
-                                                  args.num_processes, logdir, device, steps=args.task_steps, recurrent=args.recurrent_policy)
+                                                  args.num_processes, logdir, device, steps=args.task_steps,
+                                                  recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
                 printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '

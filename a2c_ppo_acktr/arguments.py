@@ -145,6 +145,11 @@ def get_args():
         default=False,
         help='use a recurrent policy')
     parser.add_argument(
+        '--obs_recurrent',
+        action='store_true',
+        default=False,
+        help='use a recurrent policy and observations input')
+    parser.add_argument(
         '--use-linear-lr-decay',
         action='store_true',
         default=False,
