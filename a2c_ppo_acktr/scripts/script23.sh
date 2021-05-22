@@ -20,3 +20,4 @@ wait
 
 echo "check testgrad on 5 arms FF training, and noise 0.03, without free exploration, with the randomly generated domains, to compare with the baseline."
 echo "noise 1.0 seemed to underfit, so adding less noise."
+echo "Seed 2 Iter 5900 five_arms 17.32 ten_arms 14.14 many_arms 10.03 : this looks pretty well. Inspecting the plots shows that that test set performance did not yet plateau"
