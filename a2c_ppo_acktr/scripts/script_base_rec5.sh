@@ -19,3 +19,6 @@ python3 main.py --env-name "h_bandit-randchoose-v6" --algo ppo --log-interval 25
 wait
 
 echo "check baseline on 5 arms FF training, without free exploration on the randomly generated domains. See if this works worse than with free exploration. Recurrent works well, does FF too?"
+echo "Seed 4 Iter 5900 five_arms 18.59 ten_arms 13.99 many_arms 7.07. This does not generalize well. Definitely room for improvement!"
+echo "BTW, during training, there are some lucky momnets: Seed 3 Iter 2700 five_arms 17.61 ten_arms 13.95 many_arms 12.58. Is this just noise? Definitely not a consistent solution."
+echo "so, free exploration definitely helps!"

@@ -19,3 +19,4 @@ python3 main.py --env-name "h_bandit-randchoose-v6" --algo ppo --log-interval 25
 wait
 
 echo "check testgrad on 5 arms FF training, and noise 0.01, without free exploration, with the randomly generated domains, to compare with the baseline."
+echo "results: Seed 5 Iter 5900 five_arms 17.9 ten_arms 12.64 many_arms 8.71. This seems to not work well."

@@ -19,3 +19,4 @@ python3 main.py --env-name "h_bandit-randchoose-v6" --algo ppo --log-interval 25
 wait
 
 echo "check testgrad on 5 arms FF training, and noise 0.0, without free exploration, with the randomly generated domains, to compare with the baseline."
+echo "sample results after training: Seed 2 Iter 5800 five_arms 18.86 ten_arms 14.75 many_arms 7.77. Seems like overfitting?"
