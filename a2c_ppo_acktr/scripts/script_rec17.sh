@@ -36,3 +36,5 @@ wait
 
 echo "testgrad obs recurrent 10 arms and free exploration, noise 1.0, norm 5.0"
 echo "noise 1.0 gave weird results, trying this now."
+echo "some good seeds Seed 9 Iter 5800 five_arms 6.8 ten_arms 18.0 many_arms 12.0, others are bad"
+echo "seed 9 got to 15! at some point."

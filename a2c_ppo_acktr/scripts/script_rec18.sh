@@ -36,3 +36,4 @@ wait
 
 echo "testgrad obs recurrent 10 arms and free exploration, noise 0.3, norm 5.0"
 echo "noise 1.0 gave weird results, trying this now."
+echo "too little regularization. Seed 5 Iter 5900 five_arms 11.0 ten_arms 20.0 many_arms 8.0"

@@ -19,3 +19,4 @@ python3 main.py --env-name "h_bandit-randchoose-v6" --algo ppo --log-interval 25
 wait
 
 echo "testgrad obs recurrent"
+echo "one seed was very good: Seed 4 Iter 5800 five_arms 18.36 ten_arms 14.71 many_arms 14.46. Even though this is v6!!. Weird. I think this is with the bug."

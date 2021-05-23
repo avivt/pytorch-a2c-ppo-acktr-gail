@@ -20,3 +20,4 @@ wait
 
 echo "check testgrad on 10 arms FF training, and noise 0.03, without free exploration, with the randomly generated domains, to compare with the baseline."
 echo "noise 0.03 on 5 arms seemed to work better than baseline. Does this hold for 10 arms too?"
+echo "Seed 5 Iter 5900 five_arms 10.8 ten_arms 19.4 many_arms 7.6: too little regularization"
