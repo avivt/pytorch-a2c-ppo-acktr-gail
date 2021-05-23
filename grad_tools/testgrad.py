@@ -55,11 +55,11 @@ class TestGrad():
         for g_i in pc_grad:
             grad_norms.append(g_i.norm())
         noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
-        for g_i in pc_grad:
-            random.shuffle(grads)
+        for i, g_i in enumerate(pc_grad):
+            # random.shuffle(grads)
             for g_j in grads:
                 g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
-                g_i = (g_i_g_j > 0) * g_i
+                pc_grad[i] = (g_i_g_j > 0) * g_i
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         if self._use_median:
             merged_grad[shared] = torch.median(torch.stack([g[shared]
