@@ -35,6 +35,8 @@ EVAL_ENVS = {'five_arms': 'h_bandit-randchoose-v6',
              'ten_arms': 'h_bandit-randchoose-v5',
              'many_arms': 'h_bandit-randchoose-v1'}
 
+# EVAL_ENVS = {'many_arms': 'h_bandit-randchoose-v1'}
+
 def main():
     args = get_args()
     import random; random.seed(args.seed)
@@ -97,7 +99,7 @@ def main():
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                          args.gamma, args.log_dir, device, False, steps=args.task_steps,
                          free_exploration=args.free_exploration, recurrent=args.recurrent_policy,
-                         obs_recurrent=args.obs_recurrent)
+                         obs_recurrent=args.obs_recurrent, multi_task=True)
     actor_critic = Policy(
         envs.observation_space.shape,
         envs.action_space,
@@ -238,7 +240,8 @@ def main():
                 # print(eval_disp_name)
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
                                                   args.num_processes, logdir, device, steps=args.task_steps,
-                                                  recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent)
+                                                  recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
+                                                  multi_task=True)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
                 printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '

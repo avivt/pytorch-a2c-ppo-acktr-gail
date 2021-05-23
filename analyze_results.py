@@ -10,7 +10,7 @@ from a2c_ppo_acktr.arguments import get_args
 from a2c_ppo_acktr.utils import save_obj, load_obj
 
 EVAL_ENVS = {'three_arms': 'h_bandit-randchoose-v0',
-             'five_arms': 'h_bandit-randchoose-v6',
+             'five_arms': 'h_bandit-randchoose-v5',
              'many_arms': 'h_bandit-randchoose-v1'}
 
 def main():
@@ -92,7 +92,7 @@ def main():
         #   'grad_noise_ratio': 0.05}, 'testgrad 0.05'],
         [{'use_testgrad': True,
           'task_steps': 20,
-          'grad_noise_ratio': 0.02}, 'testgrad 0.02'],
+          'grad_noise_ratio': 1.0}, 'testgrad 1.0 '],
         # [{'use_testgrad': True,
         #   'task_steps': 20,
         #   'grad_noise_ratio': 0.1}, 'testgrad 0.1'],
@@ -167,11 +167,11 @@ def main():
             res_many_std = np.std(res_many[:, :, 1], axis=0)
             res_five_mean = np.mean(res_five[:, :, 1], axis=0)
             res_five_std = np.std(res_five[:, :, 1], axis=0)
-            plt.errorbar(t, res_many_mean, res_many_std, label=s[1])
-            plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
-            # for i in range(res_many.shape[0]):
+            # plt.errorbar(t, res_many_mean, res_many_std, label=s[1])
+            # plt.errorbar(t, res_five_mean, res_five_std, label=s[1])
+            for i in range(res_many.shape[0]):
                 # plt.plot(res_many[i,:,0], res_many[i,:,1], label=s[1])
-                # plt.plot(res_five[i, :, 0], res_five[i, :, 1], label=s[1])
+                plt.plot(res_five[i, :, 0], res_five[i, :, 1], label=s[1])
     plt.legend()
     plt.show()
     import pdb; pdb.set_trace()
