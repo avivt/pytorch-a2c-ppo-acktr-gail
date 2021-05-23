@@ -249,7 +249,7 @@ class HBanditEnv(Env):
         if self.recurrent:
             next_state = np.array([a, r])
         elif self.obs_recurrent:
-            next_state = np.concatenate((self.obs, np.array([a, r])))
+            next_state = np.concatenate((self.obs, np.array([a, r_rank])))
         else:
             next_state = self.s.copy()
         return next_state, reward, done, {"time": self.t}
