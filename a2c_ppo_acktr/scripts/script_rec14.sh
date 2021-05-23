@@ -19,3 +19,5 @@ python3 main.py --env-name "h_bandit-randchoose-v5" --algo ppo --log-interval 25
 wait
 
 echo "testgrad obs recurrent 10 arms and free exploration"
+echo "one very good seed: Seed 4 Iter 5300 five_arms 16.61 ten_arms 15.48 many_arms 14.14"
+echo "several bad seeds: Seed 2 Iter 5900 five_arms 18.02 ten_arms 14.45 many_arms 7.98"

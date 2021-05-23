@@ -19,3 +19,4 @@ python3 main.py --env-name "h_bandit-randchoose-v5" --algo ppo --log-interval 25
 wait
 
 echo "baseline obs recurrent 10 arms"
+echo "Seed 3 Iter 5900 five_arms 20.0 ten_arms 20.0 many_arms 10.97, looks good, room for improvement, need to check if this is due to the bug"
