@@ -25,6 +25,7 @@ class PPO():
                  use_pcgrad=False,
                  use_testgrad=False,
                  use_testgrad_median=False,
+                 testgrad_quantile=-1,
                  use_noisygrad=False,
                  max_task_grad_norm=1.0,
                  grad_noise_ratio=1.0,
@@ -61,7 +62,8 @@ class PPO():
                 self.optimizer = TestGrad(self.optimizer,
                                           use_median=False,
                                           max_grad_norm=num_mini_batch * max_task_grad_norm,
-                                          noise_ratio=grad_noise_ratio)
+                                          noise_ratio=grad_noise_ratio,
+                                          quantile=testgrad_quantile)
         if use_noisygrad:
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,

@@ -9,11 +9,12 @@ import random
 
 
 class TestGrad():
-    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False):
+    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1):
         self._optim = optimizer
         self._max_grad_norm = max_grad_norm
         self._noise_ratio = noise_ratio
         self._use_median = use_median
+        self._quantile = quantile
         return
 
     @property
@@ -59,11 +60,17 @@ class TestGrad():
             # random.shuffle(grads)
             for g_j in grads:
                 g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
-                pc_grad[i] = (g_i_g_j > 0) * g_i
+                pc_grad[i] = (g_i_g_j > 0) * pc_grad[i]
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         if self._use_median:
             merged_grad[shared] = torch.median(torch.stack([g[shared]
                                                for g in pc_grad]), dim=0)[0]
+        elif self._quantile > 0:
+            stack_grad = torch.stack([g[shared] for g in pc_grad])
+            signs = torch.sign(stack_grad[0]) # all grads have same signs
+            # merged_grad[shared] = torch.median(stack_grad, dim=0)[0]
+            merged_grad[shared] = torch.quantile(stack_grad.abs(), self._quantile, dim=0) * signs
+            import pdb; pdb.set_trace()
         else:
             merged_grad[shared] = torch.stack([g[shared]
                                                for g in pc_grad]).mean(dim=0)

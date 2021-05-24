@@ -187,13 +187,18 @@ def get_args():
     parser.add_argument(
         '--max_task_grad_norm',
         type=float,
-        default=1.0,
+        default=1000.0,
         help='per-task or per-sample gradient clipping in noisy_grad and dp_sgd')
     parser.add_argument(
         '--grad_noise_ratio',
         type=float,
-        default=1.0,
+        default=0.0,
         help='gradient noise ratio for noisy_grad and dp_sgd')
+    parser.add_argument(
+        '--testgrad_quantile',
+        type=float,
+        default=-1.0,
+        help='quantile gradient in testgrad (float on [0,1])')
     parser.add_argument(
         '--task_steps',
         type=int,
