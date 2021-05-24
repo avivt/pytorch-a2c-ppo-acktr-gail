@@ -244,7 +244,7 @@ class HBanditEnv(Env):
         reward = r
         if self.t < self.free_exploration:
             reward = 0
-        if self.normalize_r:
+        elif self.normalize_r:
             reward = r_rank
         if self.recurrent:
             next_state = np.array([a, r])

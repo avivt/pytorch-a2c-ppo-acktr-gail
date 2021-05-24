@@ -209,6 +209,11 @@ def get_args():
         type=int,
         default=0,
         help='number of steps in each task without reward')
+    parser.add_argument(
+        '--weight_decay',
+        type=float,
+        default=0.0,
+        help='weight decay in Adam')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

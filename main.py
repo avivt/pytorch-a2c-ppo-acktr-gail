@@ -143,7 +143,8 @@ def main():
             testgrad_quantile=args.testgrad_quantile,
             use_privacy=args.use_privacy,
             max_task_grad_norm=args.max_task_grad_norm,
-            grad_noise_ratio=args.grad_noise_ratio)
+            grad_noise_ratio=args.grad_noise_ratio,
+            weight_decay=args.weight_decay)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
                               envs.observation_space.shape, envs.action_space,

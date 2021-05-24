@@ -29,7 +29,8 @@ class PPO():
                  use_noisygrad=False,
                  max_task_grad_norm=1.0,
                  grad_noise_ratio=1.0,
-                 num_tasks=0):
+                 num_tasks=0,
+                 weight_decay=0.0):
 
         self.actor_critic = actor_critic
         self.num_tasks = num_tasks
@@ -44,7 +45,7 @@ class PPO():
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
-        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
         self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
         self.use_testgrad = use_testgrad
