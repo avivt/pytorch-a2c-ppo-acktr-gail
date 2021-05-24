@@ -9,12 +9,13 @@ import random
 
 
 class TestGrad():
-    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1):
+    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1, alpha=1.0):
         self._optim = optimizer
         self._max_grad_norm = max_grad_norm
         self._noise_ratio = noise_ratio
         self._use_median = use_median
         self._quantile = quantile
+        self._alpha = alpha
         return
 
     @property
@@ -76,7 +77,8 @@ class TestGrad():
             merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
-        return merged_grad
+        standard_grad = torch.stack([g[shared] for g in grads]).mean(dim=0)
+        return self._alpha * merged_grad + (1-self._alpha) * standard_grad
 
     def _set_grad(self, grads):
         '''

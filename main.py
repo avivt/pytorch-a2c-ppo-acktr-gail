@@ -144,6 +144,7 @@ def main():
             use_privacy=args.use_privacy,
             max_task_grad_norm=args.max_task_grad_norm,
             grad_noise_ratio=args.grad_noise_ratio,
+            testgrad_alpha=args.testgrad_alpha,
             weight_decay=args.weight_decay)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
