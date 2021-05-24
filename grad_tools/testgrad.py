@@ -68,9 +68,7 @@ class TestGrad():
         elif self._quantile > 0:
             stack_grad = torch.stack([g[shared] for g in pc_grad])
             signs = torch.sign(stack_grad[0]) # all grads have same signs
-            # merged_grad[shared] = torch.median(stack_grad, dim=0)[0]
             merged_grad[shared] = torch.quantile(stack_grad.abs(), self._quantile, dim=0) * signs
-            import pdb; pdb.set_trace()
         else:
             merged_grad[shared] = torch.stack([g[shared]
                                                for g in pc_grad]).mean(dim=0)
