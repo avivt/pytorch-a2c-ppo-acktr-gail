@@ -247,7 +247,7 @@ class HBanditEnv(Env):
         elif self.normalize_r:
             reward = r_rank
         if self.recurrent:
-            next_state = np.array([a, r])
+            next_state = np.array([a, r_rank])
         elif self.obs_recurrent:
             next_state = np.concatenate((self.obs, np.array([a, r_rank])))
         else:
