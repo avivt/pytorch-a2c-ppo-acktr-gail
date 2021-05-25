@@ -219,6 +219,11 @@ def get_args():
         type=float,
         default=1.0,
         help='alpha mixing parameter in testgrad')
+    parser.add_argument(
+        '--testgrad_beta',
+        type=float,
+        default=1.0,
+        help='beta threshold parameter in testgrad (fraction of sign agreements)')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

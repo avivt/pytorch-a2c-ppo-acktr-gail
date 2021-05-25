@@ -9,13 +9,14 @@ import random
 
 
 class TestGrad():
-    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1, alpha=1.0):
+    def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1, alpha=1.0, beta=1.0):
         self._optim = optimizer
         self._max_grad_norm = max_grad_norm
         self._noise_ratio = noise_ratio
         self._use_median = use_median
         self._quantile = quantile
         self._alpha = alpha
+        self._beta = beta
         return
 
     @property
@@ -57,22 +58,26 @@ class TestGrad():
         for g_i in pc_grad:
             grad_norms.append(g_i.norm())
         noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
-        for i, g_i in enumerate(pc_grad):
-            # random.shuffle(grads)
-            for g_j in grads:
-                g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
-                pc_grad[i] = (g_i_g_j > 0) * pc_grad[i]
+        # for i, g_i in enumerate(pc_grad):
+        #     # random.shuffle(grads)
+        #     for g_j in grads:
+        #         g_i_g_j = torch.sign(g_j) * torch.sign(g_i)
+        #         pc_grad[i] = (g_i_g_j > 0) * pc_grad[i]
+        # merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
+        signs = copy.deepcopy(grads)
+        for i, g_i in enumerate(grads):
+            signs[i] = torch.sign(g_i)
+        scores = torch.abs(torch.stack([g[shared] for g in signs]).mean(dim=0))
+        active_elements = scores >= self._beta
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
+        stacked_grads = torch.stack([(g * active_elements)[shared] for g in grads])
         if self._use_median:
-            merged_grad[shared] = torch.median(torch.stack([g[shared]
-                                               for g in pc_grad]), dim=0)[0]
+            merged_grad[shared] = torch.median(stacked_grads, dim=0)[0]
         elif self._quantile > 0:
-            stack_grad = torch.stack([g[shared] for g in pc_grad])
-            signs = torch.sign(stack_grad[0]) # all grads have same signs
-            merged_grad[shared] = torch.quantile(stack_grad.abs(), self._quantile, dim=0) * signs
+            signs = torch.sign(stacked_grads[0]) # all grads have same signs
+            merged_grad[shared] = torch.quantile(stacked_grads.abs(), self._quantile, dim=0) * signs
         else:
-            merged_grad[shared] = torch.stack([g[shared]
-                                               for g in pc_grad]).mean(dim=0)
+            merged_grad[shared] = stacked_grads.mean(dim=0)
         if noise_std > 0:
             merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
