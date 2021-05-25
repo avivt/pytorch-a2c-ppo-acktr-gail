@@ -139,6 +139,7 @@ def main():
             use_pcgrad=args.use_pcgrad,
             use_noisygrad=args.use_noisygrad,
             use_testgrad=args.use_testgrad,
+            use_graddrop=args.use_graddrop,
             use_testgrad_median=args.use_testgrad_median,
             testgrad_quantile=args.testgrad_quantile,
             use_privacy=args.use_privacy,

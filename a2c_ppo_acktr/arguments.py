@@ -175,6 +175,11 @@ def get_args():
         default=False,
         help='use noisygrad in ppo')
     parser.add_argument(
+        '--use_graddrop',
+        action='store_true',
+        default=False,
+        help='use graddrop in ppo')
+    parser.add_argument(
         '--use_privacy',
         action='store_true',
         default=False,

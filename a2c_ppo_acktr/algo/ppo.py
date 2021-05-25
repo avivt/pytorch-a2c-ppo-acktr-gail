@@ -7,6 +7,7 @@ from opacus.utils.uniform_sampler import UniformWithReplacementSampler
 from grad_tools.pcgrad import PCGrad
 from grad_tools.noisygrad import NoisyGrad
 from grad_tools.testgrad import TestGrad
+from grad_tools.graddrop import GradDrop
 
 
 class PPO():
@@ -27,6 +28,7 @@ class PPO():
                  use_testgrad_median=False,
                  testgrad_quantile=-1,
                  use_noisygrad=False,
+                 use_graddrop=False,
                  max_task_grad_norm=1.0,
                  testgrad_alpha=1.0,
                  testgrad_beta=1.0,
@@ -55,6 +57,8 @@ class PPO():
         self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
+        if use_graddrop:
+            self.optimizer = GradDrop(self.optimizer)
         if use_testgrad:
             if use_testgrad_median:
                 self.optimizer = TestGrad(self.optimizer,
