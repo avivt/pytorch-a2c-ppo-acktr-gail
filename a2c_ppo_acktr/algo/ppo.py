@@ -4,7 +4,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 from opacus import PrivacyEngine
 from opacus.utils.uniform_sampler import UniformWithReplacementSampler
-from pcgrad import PCGrad
+from grad_tools.pcgrad import PCGrad
+from grad_tools.noisygrad import NoisyGrad
+from grad_tools.testgrad import TestGrad
+from grad_tools.graddrop import GradDrop
 
 
 class PPO():
@@ -21,7 +24,17 @@ class PPO():
                  use_clipped_value_loss=True,
                  use_privacy=False,
                  use_pcgrad=False,
-                 num_tasks=0):
+                 use_testgrad=False,
+                 use_testgrad_median=False,
+                 testgrad_quantile=-1,
+                 use_noisygrad=False,
+                 use_graddrop=False,
+                 max_task_grad_norm=1.0,
+                 testgrad_alpha=1.0,
+                 testgrad_beta=1.0,
+                 grad_noise_ratio=1.0,
+                 num_tasks=0,
+                 weight_decay=0.0):
 
         self.actor_critic = actor_critic
         self.num_tasks = num_tasks
@@ -36,16 +49,40 @@ class PPO():
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
-        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
+        self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
+        self.use_testgrad = use_testgrad
+        self.use_noisygrad = use_noisygrad
+        self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
+        if use_graddrop:
+            self.optimizer = GradDrop(self.optimizer)
+        if use_testgrad:
+            if use_testgrad_median:
+                self.optimizer = TestGrad(self.optimizer,
+                                          use_median=True,
+                                          max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                          noise_ratio=grad_noise_ratio)
+            else:
+                self.optimizer = TestGrad(self.optimizer,
+                                          use_median=False,
+                                          max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                          noise_ratio=grad_noise_ratio,
+                                          quantile=testgrad_quantile,
+                                          alpha=testgrad_alpha,
+                                          beta=testgrad_beta)
+        if use_noisygrad:
+            self.optimizer = NoisyGrad(self.optimizer,
+                                       max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                       noise_ratio=grad_noise_ratio)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
                 sample_rate=0.01,
-                noise_multiplier=1.0,
-                max_grad_norm=1.0,
+                noise_multiplier=grad_noise_ratio,
+                max_grad_norm=max_task_grad_norm,
             )
             privacy_engine.attach(self.optimizer)
 
@@ -60,8 +97,10 @@ class PPO():
 
         for e in range(self.ppo_epoch):
             if self.actor_critic.is_recurrent:
-                data_generators = [rollouts.recurrent_generator(
-                    advantages, self.num_mini_batch)]
+                # data_generators = [rollouts.recurrent_generator(
+                #     advantages, self.num_mini_batch)]
+                data_generators = [rollouts.single_process_recurrent_generator(
+                    advantages, self.num_mini_batch, process=i) for i in range(self.num_tasks)]
             elif self.num_tasks > 0:
                 assert self.num_tasks == rollouts.num_processes
                 data_generators = [rollouts.single_process_feed_forward_generator(
@@ -69,7 +108,6 @@ class PPO():
             else:
                 data_generators = [rollouts.feed_forward_generator(
                     advantages, self.num_mini_batch)]
-
             for sample in zip(*data_generators):
                 task_losses = []
                 for task in range(len(sample)):
@@ -101,12 +139,16 @@ class PPO():
                         value_loss = 0.5 * (return_batch - values).pow(2).mean()
                     task_losses.append(value_loss * self.value_loss_coef + action_loss -
                                        dist_entropy * self.entropy_coef)
-                total_loss = torch.stack(task_losses).sum()
+                total_loss = torch.stack(task_losses).mean()
                 self.optimizer.zero_grad()
                 # (value_loss * self.value_loss_coef + action_loss -
                 #  dist_entropy * self.entropy_coef).backward()
                 if self.use_pcgrad:
                     self.optimizer.pc_backward(task_losses)
+                elif self.use_testgrad:
+                    self.optimizer.pc_backward(task_losses)
+                elif self.use_noisygrad:
+                    self.optimizer.noisy_backward(task_losses)
                 else:
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),

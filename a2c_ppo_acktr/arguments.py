@@ -145,6 +145,11 @@ def get_args():
         default=False,
         help='use a recurrent policy')
     parser.add_argument(
+        '--obs_recurrent',
+        action='store_true',
+        default=False,
+        help='use a recurrent policy and observations input')
+    parser.add_argument(
         '--use-linear-lr-decay',
         action='store_true',
         default=False,
@@ -155,10 +160,75 @@ def get_args():
         default=False,
         help='use pcgrad in ppo')
     parser.add_argument(
+        '--use_testgrad',
+        action='store_true',
+        default=False,
+        help='use testgrad in ppo')
+    parser.add_argument(
+        '--use_testgrad_median',
+        action='store_true',
+        default=False,
+        help='use testgrad with median gradient instead of mean in ppo')
+    parser.add_argument(
+        '--use_noisygrad',
+        action='store_true',
+        default=False,
+        help='use noisygrad in ppo')
+    parser.add_argument(
+        '--use_graddrop',
+        action='store_true',
+        default=False,
+        help='use graddrop in ppo')
+    parser.add_argument(
         '--use_privacy',
         action='store_true',
         default=False,
         help='use differentially private SGD in ppo')
+    parser.add_argument(
+        '--continue_from_epoch',
+        type=int,
+        default=0,
+        help='load previous training (from model save dir) and continue')
+    parser.add_argument(
+        '--max_task_grad_norm',
+        type=float,
+        default=1000.0,
+        help='per-task or per-sample gradient clipping in noisy_grad and dp_sgd')
+    parser.add_argument(
+        '--grad_noise_ratio',
+        type=float,
+        default=0.0,
+        help='gradient noise ratio for noisy_grad and dp_sgd')
+    parser.add_argument(
+        '--testgrad_quantile',
+        type=float,
+        default=-1.0,
+        help='quantile gradient in testgrad (float on [0,1])')
+    parser.add_argument(
+        '--task_steps',
+        type=int,
+        default=20,
+        help='number of steps in each task')
+    parser.add_argument(
+        '--free_exploration',
+        type=int,
+        default=0,
+        help='number of steps in each task without reward')
+    parser.add_argument(
+        '--weight_decay',
+        type=float,
+        default=0.0,
+        help='weight decay in Adam')
+    parser.add_argument(
+        '--testgrad_alpha',
+        type=float,
+        default=1.0,
+        help='alpha mixing parameter in testgrad')
+    parser.add_argument(
+        '--testgrad_beta',
+        type=float,
+        default=1.0,
+        help='beta threshold parameter in testgrad (fraction of sign agreements)')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

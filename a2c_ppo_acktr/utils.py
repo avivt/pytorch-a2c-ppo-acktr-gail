@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from a2c_ppo_acktr.envs import VecNormalize
+import pickle
 
 
 # Get a render function
@@ -63,3 +64,13 @@ def cleanup_log_dir(log_dir):
         files = glob.glob(os.path.join(log_dir, '*.monitor.csv'))
         for f in files:
             os.remove(f)
+
+
+def save_obj(obj, name ):
+    with open(name, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_obj(name ):
+    with open(name, 'rb') as f:
+        return pickle.load(f)

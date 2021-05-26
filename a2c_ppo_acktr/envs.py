@@ -32,14 +32,14 @@ except ImportError:
     pass
 
 
-def make_env(env_id, seed, rank, log_dir, allow_early_resets):
+def make_env(env_id, seed, rank, log_dir, allow_early_resets, **kwargs):
     def _thunk():
         if env_id.startswith("dm"):
             _, domain, task = env_id.split('.')
             env = dmc2gym.make(domain_name=domain, task_name=task)
             env = ClipAction(env)
         else:
-            env = gym.make(env_id)
+            env = gym.make(env_id, **kwargs)
 
         is_atari = hasattr(gym.envs, 'atari') and isinstance(
             env.unwrapped, gym.envs.atari.atari_env.AtariEnv)
@@ -88,12 +88,13 @@ def make_vec_envs(env_name,
                   device,
                   allow_early_resets,
                   num_frame_stack=None,
-                  multi_task=False):
+                  multi_task=False,
+                  multi_task_index=0,
+                  **kwargs):
     envs = [
-        make_env(env_name, seed, i, log_dir, allow_early_resets)
+        make_env(env_name, seed, i, log_dir, allow_early_resets, **kwargs)
         for i in range(num_processes)
     ]
-
     if len(envs) > 1:
         envs = SubprocVecEnv(envs)
     else:
@@ -109,7 +110,7 @@ def make_vec_envs(env_name,
 
     if multi_task:
         for i in range(num_processes):
-            envs.set_task_id(indices=i)
+            envs.set_task_id(task_id=multi_task_index+i, indices=i)
 
     if num_frame_stack is not None:
         envs = VecPyTorchFrameStack(envs, num_frame_stack, device)
@@ -181,8 +182,8 @@ class VecPyTorch(VecEnvWrapper):
         obs = torch.from_numpy(obs).float().to(self.device)
         return obs
 
-    def set_task_id(self, indices):
-        self.venv.env_method(method_name="set_task_id", task_id=1, indices=indices)
+    def set_task_id(self, task_id, indices):
+        self.venv.env_method(method_name="set_task_id", indices=indices, task_id=task_id)
         # self.venv.env_method(method_name="reset", indices=indices)
 
     def get_task_id(self, indices):
