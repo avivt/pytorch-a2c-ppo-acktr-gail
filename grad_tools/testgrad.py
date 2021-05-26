@@ -63,6 +63,7 @@ class TestGrad():
             signs[i] = torch.sign(g_i)
         scores = torch.abs(torch.stack([g[shared] for g in signs]).mean(dim=0))
         active_elements = scores >= self._beta
+        # print((scores >= 1.0).float().mean())
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         stacked_grads = torch.stack([(g * active_elements)[shared] for g in grads])
         if self._use_median:

@@ -24,3 +24,11 @@ wait
 
 echo "testgrad recurrent 10 arms, different beta values. Beta=1.0 did not work well (underfit)"
 echo "if testgrad does not hurt, this should show optimal generalization, as without testgrad it is already optimal"
+echo "0.2: Seed 3 Iter 4900 five_arms 14.4 ten_arms 16.4 many_arms 14.74"
+echo "0.2: Seed 2 Iter 4900 five_arms 15.4 ten_arms 14.8 many_arms 12.94"
+echo "0.1: Seed 5 Iter 4900 five_arms 14.0 ten_arms 14.6 many_arms 12.84"
+echo "0.5: Seed 6 Iter 4900 five_arms 10.8 ten_arms 6.8 many_arms 5.88"
+echo "0.5: Seed 1 Iter 4600 five_arms 7.4 ten_arms 7.4 many_arms 7.34"
+echo "0.7: Seed 4 Iter 4800 five_arms 8.4 ten_arms 7.0 many_arms 6.34"
+echo "conclusion: beta <= 0.2 works, beta>0.5 cannot find the optimum"
+echo "I need to find regularization that finds the optimum, but is strong enough to not overfit on obs recurrent"

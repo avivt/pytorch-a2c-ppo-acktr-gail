@@ -225,17 +225,17 @@ def main():
                 getattr(utils.get_vec_normalize(envs), 'obs_rms', None)
             ], os.path.join(save_path, args.env_name + "-epoch-{}.pt".format(j)))
 
-        # if j % args.log_interval == 0 and len(episode_rewards) > 1:
-        #     total_num_steps = (j + 1) * args.num_processes * args.num_steps
-        #     end = time.time()
-        #     print(
-        #         "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
-        #         .format(j, total_num_steps,
-        #                 int(total_num_steps / (end - start)),
-        #                 len(episode_rewards), np.mean(episode_rewards),
-        #                 np.median(episode_rewards), np.min(episode_rewards),
-        #                 np.max(episode_rewards), dist_entropy, value_loss,
-        #                 action_loss))
+        if j % args.log_interval == 0 and len(episode_rewards) > 1:
+            total_num_steps = (j + 1) * args.num_processes * args.num_steps
+            end = time.time()
+            print(
+                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
+                .format(j, total_num_steps,
+                        int(total_num_steps / (end - start)),
+                        len(episode_rewards), np.mean(episode_rewards),
+                        np.median(episode_rewards), np.min(episode_rewards),
+                        np.max(episode_rewards), dist_entropy, value_loss,
+                        action_loss))
 
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):

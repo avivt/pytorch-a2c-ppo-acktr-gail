@@ -23,3 +23,7 @@ python3 main.py --env-name "h_bandit-randchoose-v5" --algo ppo --log-interval 25
 wait
 
 echo "testgrad obs recurrent 10 arms and free exploration, noise 0.0, beta=0.1 / 0.5"
+echo "Seed 3 Iter 4900 five_arms 12.6 ten_arms 19.5 many_arms 8.95"
+echo "Seed 2 Iter 4800 five_arms 12.4 ten_arms 18.0 many_arms 9.0"
+echo "conclusion: beta 0.2 leads to overfitting (>18 on training). Need stronger regularization somehow."
+echo "the problem is that even beta 1.0 leads to overfitting, but beta 1.0 underfits on recurrent, so something is messed up. Maybe more environments can help?"
