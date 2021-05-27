@@ -50,9 +50,6 @@ class MedianGrad():
         shared = torch.stack(has_grads).prod(0).bool()
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
 
-        grad_norms = []
-        noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
-
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
         stacked_grads = torch.stack([g[shared] for g in grads])
         merged_grad[shared] = torch.median(stacked_grads, dim=0)[0]
