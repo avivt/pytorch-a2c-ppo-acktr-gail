@@ -8,6 +8,7 @@ from grad_tools.pcgrad import PCGrad
 from grad_tools.noisygrad import NoisyGrad
 from grad_tools.testgrad import TestGrad
 from grad_tools.graddrop import GradDrop
+from grad_tools.mediangrad import MedianGrad
 
 
 class PPO():
@@ -26,6 +27,7 @@ class PPO():
                  use_pcgrad=False,
                  use_testgrad=False,
                  use_testgrad_median=False,
+                 use_median_grad=False,
                  testgrad_quantile=-1,
                  use_noisygrad=False,
                  use_graddrop=False,
@@ -54,6 +56,7 @@ class PPO():
         self.use_pcgrad = use_pcgrad
         self.use_testgrad = use_testgrad
         self.use_noisygrad = use_noisygrad
+        self.use_median_grad = use_median_grad
         self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
@@ -77,6 +80,9 @@ class PPO():
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,
                                        noise_ratio=grad_noise_ratio)
+        if use_median_grad:
+            self.optimizer = MedianGrad(self.optimizer,
+                                        noise_ratio=grad_noise_ratio)
         if use_privacy:
             privacy_engine = PrivacyEngine(
                 actor_critic,
@@ -149,6 +155,8 @@ class PPO():
                     self.optimizer.pc_backward(task_losses)
                 elif self.use_noisygrad:
                     self.optimizer.noisy_backward(task_losses)
+                elif self.use_median_grad:
+                    self.optimizer.median_backward(task_losses)
                 else:
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
