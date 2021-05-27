@@ -9,10 +9,11 @@ import random
 
 
 class NoisyGrad():
-    def __init__(self, optimizer, max_grad_norm=1.0, noise_ratio=1.0):
+    def __init__(self, optimizer, max_grad_norm=1.0, noise_ratio=1.0, use_median=False):
         self._optim = optimizer
         self._max_grad_norm = max_grad_norm
         self._noise_ratio = noise_ratio
+        self._use_median = use_median
         return
 
     @property
@@ -59,8 +60,14 @@ class NoisyGrad():
                 g_i *= self._max_grad_norm / g_i.norm()
             g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
-        merged_grad[shared] = torch.stack([g[shared]
+        if self._use_median:
+            merged_grad[shared] = torch.median(torch.stack([g[shared]
+                                               for g in pc_grad]), dim=0)[0]
+        else:
+            merged_grad[shared] = torch.stack([g[shared]
                                            for g in pc_grad]).mean(dim=0)
+        if noise_std > 0:
+            merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
         return merged_grad
