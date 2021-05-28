@@ -18,3 +18,4 @@ wait
 
 echo "obs recurrent 25 arms and free exploration, testgrad_beta 0.8"
 echo "a previous seed gave surprising results, checking if this is consistent"
+echo "no good results"
