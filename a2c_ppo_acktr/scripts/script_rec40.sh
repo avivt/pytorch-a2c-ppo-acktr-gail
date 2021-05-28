@@ -17,3 +17,4 @@ python3 main.py --env-name "h_bandit-randchoose-v8" --algo  ppo --log-interval 2
 wait
 
 echo "obs recurrent 25 arms and free exploration, median gradient, different hyperparams"
+echo "so far not good"
