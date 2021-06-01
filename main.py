@@ -57,6 +57,8 @@ def main():
         logdir = logdir + '_pcgrad'
     elif args.use_testgrad:
         logdir = logdir + '_testgrad'
+    elif args.use_median_grad:
+        logdir = logdir + '_mediangrad'
     logdir = os.path.join('runs', logdir)
     logdir = os.path.join(os.path.expanduser(args.log_dir), logdir)
     utils.cleanup_log_dir(logdir)
@@ -71,6 +73,7 @@ def main():
         'use_testgrad': args.use_testgrad,
         'use_testgrad_median': args.use_testgrad_median,
         'testgrad_quantile': args.testgrad_quantile,
+        'median_grad': args.use_median_grad,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
         'recurrent': args.recurrent_policy,
@@ -89,6 +92,7 @@ def main():
                                 'use_testgrad': args.use_testgrad,
                                 'use_testgrad_median': args.use_testgrad_median,
                                 'testgrad_quantile': args.testgrad_quantile,
+                                'median_grad': args.use_median_grad,
                                 'use_privacy': args.use_privacy,
                                 'seed': args.seed,
                                 'recurrent': args.recurrent_policy,
@@ -143,6 +147,7 @@ def main():
             use_testgrad_median=args.use_testgrad_median,
             testgrad_quantile=args.testgrad_quantile,
             use_privacy=args.use_privacy,
+            use_median_grad=args.use_median_grad,
             max_task_grad_norm=args.max_task_grad_norm,
             grad_noise_ratio=args.grad_noise_ratio,
             testgrad_alpha=args.testgrad_alpha,

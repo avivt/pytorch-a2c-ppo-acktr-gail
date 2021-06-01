@@ -8,12 +8,10 @@ import copy
 import random
 
 
-class NoisyGrad():
-    def __init__(self, optimizer, max_grad_norm=1.0, noise_ratio=1.0, use_median=False):
+class MedianGrad():
+    def __init__(self, optimizer, noise_ratio=1.0):
         self._optim = optimizer
-        self._max_grad_norm = max_grad_norm
         self._noise_ratio = noise_ratio
-        self._use_median = use_median
         return
 
     @property
@@ -34,7 +32,7 @@ class NoisyGrad():
 
         return self._optim.step()
 
-    def noisy_backward(self, objectives):
+    def median_backward(self, objectives):
         '''
         calculate the gradient of the parameters
 
@@ -51,23 +49,19 @@ class NoisyGrad():
     def _clip_and_add_noise(self, grads, has_grads, shapes=None):
         shared = torch.stack(has_grads).prod(0).bool()
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
-        grad_norms = []
-        for g_i in pc_grad:
-            grad_norms.append(g_i.norm())
-        noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
-        for g_i in pc_grad:
-            if g_i.norm() >= self._max_grad_norm:
-                g_i *= self._max_grad_norm / g_i.norm()
-            g_i += torch.normal(torch.zeros_like(grads[0]), noise_std)
+
         merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
-        if self._use_median:
-            merged_grad[shared] = torch.median(torch.stack([g[shared]
-                                               for g in pc_grad]), dim=0)[0]
-        else:
-            merged_grad[shared] = torch.stack([g[shared]
-                                           for g in pc_grad]).mean(dim=0)
-        if noise_std > 0:
-            merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
+        stacked_grads = torch.stack([g[shared] for g in grads])
+        merged_grad[shared] = torch.median(stacked_grads, dim=0)[0]
+
+        u = torch.rand(merged_grad.shape)
+        top_quantile = np.minimum((num_task + 1) / (2 * num_task), 1.0)
+        bottom_quantile = np.maximum((num_task - 1) / (2 * num_task), 0.0)
+        noise_max = torch.quantile(stacked_grads.abs(), top_quantile, dim=0) - merged_grad
+        noise_min = merged_grad - torch.quantile(stacked_grads.abs(), bottom_quantile, dim=0)
+        noise = (u * (noise_max - noise_min) + noise_min) * self._noise_ratio
+        merged_grad += noise
+
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
         return merged_grad
