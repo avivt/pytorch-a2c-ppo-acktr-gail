@@ -74,6 +74,7 @@ def main():
         'use_testgrad_median': args.use_testgrad_median,
         'testgrad_quantile': args.testgrad_quantile,
         'median_grad': args.use_median_grad,
+        'no_special_grad_for_critic': args.no_special_grad_for_critic,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
         'recurrent': args.recurrent_policy,
@@ -93,6 +94,7 @@ def main():
                                 'use_testgrad_median': args.use_testgrad_median,
                                 'testgrad_quantile': args.testgrad_quantile,
                                 'median_grad': args.use_median_grad,
+                                'no_special_grad_for_critic': args.no_special_grad_for_critic,
                                 'use_privacy': args.use_privacy,
                                 'seed': args.seed,
                                 'recurrent': args.recurrent_policy,
@@ -152,6 +154,7 @@ def main():
             grad_noise_ratio=args.grad_noise_ratio,
             testgrad_alpha=args.testgrad_alpha,
             testgrad_beta=args.testgrad_beta,
+            no_special_grad_for_critic=args.no_special_grad_for_critic,
             weight_decay=args.weight_decay)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,

@@ -234,6 +234,11 @@ def get_args():
         type=float,
         default=1.0,
         help='beta threshold parameter in testgrad (fraction of sign agreements)')
+    parser.add_argument(
+        '--no_special_grad_for_critic',
+        action='store_true',
+        default=False,
+        help='no special grad for critic in testgrad')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

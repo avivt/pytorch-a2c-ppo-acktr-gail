@@ -45,14 +45,15 @@ class TestGrad():
         - objectives: a list of objectives
         '''
 
-        grads, shapes, has_grads = self._pack_grad(objectives)
-        pc_grad = self._project_conflicting(grads, has_grads)
+        grads, shapes, has_grads, special_grads = self._pack_grad(objectives)
+        pc_grad = self._project_conflicting(grads, has_grads, special_grads)
         pc_grad = self._unflatten_grad(pc_grad, shapes[0])
         self._set_grad(pc_grad)
         return
 
-    def _project_conflicting(self, grads, has_grads, shapes=None):
+    def _project_conflicting(self, grads, has_grads, special_grads, shapes=None):
         shared = torch.stack(has_grads).prod(0).bool()
+        special = torch.stack(special_grads).prod(0)
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
         grad_norms = []
         for g_i in pc_grad:
@@ -78,7 +79,8 @@ class TestGrad():
         merged_grad[~shared] = torch.stack([g[~shared]
                                             for g in pc_grad]).sum(dim=0)
         standard_grad = torch.stack([g[shared] for g in grads]).mean(dim=0)
-        return self._alpha * merged_grad + (1-self._alpha) * standard_grad
+        alpha = special * self._alpha
+        return alpha * merged_grad + (1-alpha) * standard_grad
 
     def _set_grad(self, grads):
         '''
@@ -103,15 +105,16 @@ class TestGrad():
         - has_grad: a list of mask represent whether the parameter has gradient
         '''
 
-        grads, shapes, has_grads = [], [], []
+        grads, shapes, has_grads, special_grads = [], [], [], []
         for obj in objectives:
             self._optim.zero_grad(set_to_none=True)
             obj.backward(retain_graph=True)
-            grad, shape, has_grad = self._retrieve_grad()
+            grad, shape, has_grad, special_grad = self._retrieve_grad()
             grads.append(self._flatten_grad(grad, shape))
             has_grads.append(self._flatten_grad(has_grad, shape))
+            special_grads.append(self._flatten_grad(special_grad, shape))
             shapes.append(shape)
-        return grads, shapes, has_grads
+        return grads, shapes, has_grads, special_grads
 
     def _unflatten_grad(self, grads, shapes):
         unflatten_grad, idx = [], 0
@@ -134,13 +137,21 @@ class TestGrad():
         - grad: a list of the gradient of the parameters
         - shape: a list of the shape of the parameters
         - has_grad: a list of mask represent whether the parameter has gradient
+        - special_grad: a list of mask represent whether the parameter should be applied a special/standard gradient
         '''
 
-        grad, shape, has_grad = [], [], []
+        grad, shape, has_grad, special_grad = [], [], [], []
         for group in self._optim.param_groups:
+            apply_special_grad_to_group = True
+            if "special_grad" in group:
+                apply_special_grad_to_group = group['special_grad']
             for p in group['params']:
                 # if p.grad is None: continue
                 # tackle the multi-head scenario
+                if apply_special_grad_to_group:
+                    special_grad.append(torch.ones_like(p).to(p.device))
+                else:
+                    special_grad.append(torch.zeros_like(p).to(p.device))
                 if p.grad is None:
                     shape.append(p.shape)
                     grad.append(torch.zeros_like(p).to(p.device))
@@ -149,7 +160,7 @@ class TestGrad():
                 shape.append(p.grad.shape)
                 grad.append(p.grad.clone())
                 has_grad.append(torch.ones_like(p).to(p.device))
-        return grad, shape, has_grad
+        return grad, shape, has_grad, special_grad
 
 
 class TestNet(nn.Module):
