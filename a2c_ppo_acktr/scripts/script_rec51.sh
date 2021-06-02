@@ -18,3 +18,9 @@ wait
 
 echo "obs recurrent 25 arms and free exploration, testgrad_beta 0.9, no_special_grad_for_critic"
 echo "with sepcial grad for critic this worked rather well, checking how not doing testgrad on critic behaves"
+echo "Seed 16 Iter 2300 five_arms 18.4 ten_arms 18.0 many_arms 11.8
+Updates 2325, num timesteps 5815000, FPS 683
+ Last 10 training episodes: mean/median reward 12.4/13.5, min/max reward 6.0/15.0
+
+Updates 2325, num timesteps 5815000, FPS 681
+ Last 10 training episodes: mean/median reward 14.6/15.0, min/max reward 13.0/15.0"
