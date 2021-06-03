@@ -44,7 +44,6 @@ class PPO():
 
         self.actor_critic = actor_critic
         self.num_tasks = num_tasks
-
         self.clip_param = clip_param
         self.ppo_epoch = ppo_epoch
         self.num_mini_batch = num_mini_batch
@@ -79,6 +78,8 @@ class PPO():
         self.use_testgrad = use_testgrad
         self.use_noisygrad = use_noisygrad
         self.use_median_grad = use_median_grad
+        self.use_meanvargrad = use_meanvargrad
+        self.use_graddrop = use_graddrop
         self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
@@ -184,6 +185,10 @@ class PPO():
                     self.optimizer.noisy_backward(task_losses)
                 elif self.use_median_grad:
                     self.optimizer.median_backward(task_losses)
+                elif self.use_meanvargrad:
+                    self.optimizer.pc_backward(task_losses)
+                elif self.use_graddrop:
+                    self.optimizer.pc_backward(task_losses)
                 else:
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
