@@ -9,6 +9,7 @@ from grad_tools.noisygrad import NoisyGrad
 from grad_tools.testgrad import TestGrad
 from grad_tools.graddrop import GradDrop
 from grad_tools.mediangrad import MedianGrad
+from grad_tools.meanvar_grad import MeanVarGrad
 
 
 class PPO():
@@ -30,6 +31,7 @@ class PPO():
                  use_median_grad=False,
                  testgrad_quantile=-1,
                  use_noisygrad=False,
+                 use_meanvargrad=False,
                  use_graddrop=False,
                  no_special_grad_for_critic=False,
                  max_task_grad_norm=1.0,
@@ -99,6 +101,10 @@ class PPO():
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,
                                        noise_ratio=grad_noise_ratio)
+        if use_meanvargrad:
+            self.optimizer = MeanVarGrad(self.optimizer,
+                                         max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                         noise_ratio=grad_noise_ratio)
         if use_median_grad:
             self.optimizer = MedianGrad(self.optimizer,
                                         noise_ratio=grad_noise_ratio)

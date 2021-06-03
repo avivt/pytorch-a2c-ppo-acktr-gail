@@ -239,6 +239,11 @@ def get_args():
         action='store_true',
         default=False,
         help='no special grad for critic in testgrad')
+    parser.add_argument(
+        '--use_meanvargrad',
+        action='store_true',
+        default=False,
+        help='use mean-variance gradient instead of mean in ppo')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()
