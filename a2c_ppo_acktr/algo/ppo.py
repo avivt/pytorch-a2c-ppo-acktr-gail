@@ -32,6 +32,7 @@ class PPO():
                  testgrad_quantile=-1,
                  use_noisygrad=False,
                  use_meanvargrad=False,
+                 meanvar_beta=1.0,
                  use_graddrop=False,
                  no_special_grad_for_critic=False,
                  max_task_grad_norm=1.0,
@@ -104,7 +105,8 @@ class PPO():
         if use_meanvargrad:
             self.optimizer = MeanVarGrad(self.optimizer,
                                          max_grad_norm=num_mini_batch * max_task_grad_norm,
-                                         noise_ratio=grad_noise_ratio)
+                                         noise_ratio=grad_noise_ratio,
+                                         beta=meanvar_beta)
         if use_median_grad:
             self.optimizer = MedianGrad(self.optimizer,
                                         noise_ratio=grad_noise_ratio)

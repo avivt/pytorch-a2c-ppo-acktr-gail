@@ -244,6 +244,11 @@ def get_args():
         action='store_true',
         default=False,
         help='use mean-variance gradient instead of mean in ppo')
+    parser.add_argument(
+        '--meanvar_beta',
+        type=float,
+        default=1.0,
+        help='beta threshold parameter in mean - beta*var')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()
