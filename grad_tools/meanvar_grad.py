@@ -62,7 +62,7 @@ class MeanVarGrad():
         means = (torch.stack([g[shared] for g in grads]).mean(dim=0))
         stds = (torch.stack([g[shared] for g in grads]).std(dim=0))
         signs = torch.sign(means)
-        merged_grad = means - torch.min(torch.abs(means), self._beta * stds) * signs
+        merged_grad = means - torch.min(torch.stack([torch.abs(means), self._beta * stds]),dim=0) * signs
         if noise_std > 0:
             merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
