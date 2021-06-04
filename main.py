@@ -262,7 +262,7 @@ def main():
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
                                                   args.num_processes, logdir, device, steps=args.task_steps,
                                                   recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
-                                                  multi_task=True)
+                                                  multi_task=True, free_exploration=args.free_exploration)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
                 printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '
