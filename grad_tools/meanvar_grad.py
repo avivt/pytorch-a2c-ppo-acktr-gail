@@ -8,7 +8,7 @@ import copy
 import random
 
 
-class TestGrad():
+class MeanVarGrad():
     def __init__(self, optimizer, max_grad_norm=0.0, noise_ratio=0.0, use_median=False, quantile=-1, alpha=1.0, beta=1.0):
         self._optim = optimizer
         self._max_grad_norm = max_grad_norm
@@ -59,26 +59,15 @@ class TestGrad():
         for g_i in pc_grad:
             grad_norms.append(g_i.norm())
         noise_std = np.minimum(np.max(np.array(grad_norms)), self._max_grad_norm) * self._noise_ratio
-        signs = copy.deepcopy(grads)
-        for i, g_i in enumerate(grads):
-            signs[i] = torch.sign(g_i)
-        scores = torch.abs(torch.stack([g[shared] for g in signs]).mean(dim=0))
-        active_elements = scores >= self._beta
-        # print((scores >= 1.0).float().mean())
-        merged_grad = torch.zeros_like(grads[0]).to(grads[0].device)
-        stacked_grads = torch.stack([(g * active_elements)[shared] for g in grads])
-        if self._use_median:
-            merged_grad[shared] = torch.median(stacked_grads, dim=0)[0]
-        elif self._quantile > 0:
-            signs = torch.sign(stacked_grads[0]) # all grads have same signs
-            merged_grad[shared] = torch.quantile(stacked_grads.abs(), self._quantile, dim=0) * signs
-        else:
-            merged_grad[shared] = stacked_grads.mean(dim=0)
+        means = (torch.stack([g[shared] for g in grads]).mean(dim=0))
+        stds = (torch.stack([g[shared] for g in grads]).std(dim=0))
+        signs = torch.sign(means)
+        merged_grad = means - torch.stack([torch.abs(means), self._beta * stds]).min(dim=0)[0] * signs
         if noise_std > 0:
             merged_grad += torch.normal(torch.zeros_like(grads[0]), noise_std)
         merged_grad[~shared] = torch.stack([g[~shared]
-                                            for g in pc_grad]).sum(dim=0)
-        standard_grad = torch.stack([g[shared] for g in grads]).mean(dim=0)
+                                            for g in grads]).sum(dim=0)
+        standard_grad = means
         alpha = special * self._alpha
         return alpha * merged_grad + (1-alpha) * standard_grad
 

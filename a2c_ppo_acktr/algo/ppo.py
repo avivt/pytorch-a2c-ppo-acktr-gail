@@ -9,6 +9,7 @@ from grad_tools.noisygrad import NoisyGrad
 from grad_tools.testgrad import TestGrad
 from grad_tools.graddrop import GradDrop
 from grad_tools.mediangrad import MedianGrad
+from grad_tools.meanvar_grad import MeanVarGrad
 
 
 class PPO():
@@ -30,7 +31,10 @@ class PPO():
                  use_median_grad=False,
                  testgrad_quantile=-1,
                  use_noisygrad=False,
+                 use_meanvargrad=False,
+                 meanvar_beta=1.0,
                  use_graddrop=False,
+                 no_special_grad_for_critic=False,
                  max_task_grad_norm=1.0,
                  testgrad_alpha=1.0,
                  testgrad_beta=1.0,
@@ -40,7 +44,6 @@ class PPO():
 
         self.actor_critic = actor_critic
         self.num_tasks = num_tasks
-
         self.clip_param = clip_param
         self.ppo_epoch = ppo_epoch
         self.num_mini_batch = num_mini_batch
@@ -51,12 +54,32 @@ class PPO():
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
-        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
+        # no_special_grad_for_critic means that we apply a standard gradient to the critic parameters and a special
+        # gradient (e.g., testgrad) to the actor parameters. To do that, we name the different parameter groups in the
+        # optimizer, and modify the special gradient code to take that into account
+        if no_special_grad_for_critic:
+            critic_params = []
+            non_critic_params = []
+            for name, p in actor_critic.named_parameters():
+                if 'critic' in name:
+                    critic_params.append(p)
+                else:
+                    non_critic_params.append(p)
+            self.optimizer = optim.Adam([{'params': critic_params,
+                                          'special_grad': False},
+                                        {'params': non_critic_params,
+                                         'special_grad': True}],
+                                        lr=lr, eps=eps, weight_decay=weight_decay)
+        else:
+            self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
+
         self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
         self.use_testgrad = use_testgrad
         self.use_noisygrad = use_noisygrad
         self.use_median_grad = use_median_grad
+        self.use_meanvargrad = use_meanvargrad
+        self.use_graddrop = use_graddrop
         self.use_privacy = use_privacy
         if use_pcgrad:
             self.optimizer = PCGrad(self.optimizer)
@@ -80,6 +103,11 @@ class PPO():
             self.optimizer = NoisyGrad(self.optimizer,
                                        max_grad_norm=num_mini_batch * max_task_grad_norm,
                                        noise_ratio=grad_noise_ratio)
+        if use_meanvargrad:
+            self.optimizer = MeanVarGrad(self.optimizer,
+                                         max_grad_norm=num_mini_batch * max_task_grad_norm,
+                                         noise_ratio=grad_noise_ratio,
+                                         beta=meanvar_beta)
         if use_median_grad:
             self.optimizer = MedianGrad(self.optimizer,
                                         noise_ratio=grad_noise_ratio)
@@ -157,6 +185,10 @@ class PPO():
                     self.optimizer.noisy_backward(task_losses)
                 elif self.use_median_grad:
                     self.optimizer.median_backward(task_losses)
+                elif self.use_meanvargrad:
+                    self.optimizer.pc_backward(task_losses)
+                elif self.use_graddrop:
+                    self.optimizer.pc_backward(task_losses)
                 else:
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),

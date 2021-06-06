@@ -74,6 +74,9 @@ def main():
         'use_testgrad_median': args.use_testgrad_median,
         'testgrad_quantile': args.testgrad_quantile,
         'median_grad': args.use_median_grad,
+        'use_meanvargrad': args.use_meanvargrad,
+        'meanvar_beta': args.meanvar_beta,
+        'no_special_grad_for_critic': args.no_special_grad_for_critic,
         'use_privacy': args.use_privacy,
         'seed': args.seed,
         'recurrent': args.recurrent_policy,
@@ -93,6 +96,9 @@ def main():
                                 'use_testgrad_median': args.use_testgrad_median,
                                 'testgrad_quantile': args.testgrad_quantile,
                                 'median_grad': args.use_median_grad,
+                                'use_meanvargrad': args.use_meanvargrad,
+                                'meanvar_beta': args.meanvar_beta,
+                                'no_special_grad_for_critic': args.no_special_grad_for_critic,
                                 'use_privacy': args.use_privacy,
                                 'seed': args.seed,
                                 'recurrent': args.recurrent_policy,
@@ -148,10 +154,13 @@ def main():
             testgrad_quantile=args.testgrad_quantile,
             use_privacy=args.use_privacy,
             use_median_grad=args.use_median_grad,
+            use_meanvargrad=args.use_meanvargrad,
+            meanvar_beta=args.meanvar_beta,
             max_task_grad_norm=args.max_task_grad_norm,
             grad_noise_ratio=args.grad_noise_ratio,
             testgrad_alpha=args.testgrad_alpha,
             testgrad_beta=args.testgrad_beta,
+            no_special_grad_for_critic=args.no_special_grad_for_critic,
             weight_decay=args.weight_decay)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
@@ -253,7 +262,7 @@ def main():
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_env_name, args.seed,
                                                   args.num_processes, logdir, device, steps=args.task_steps,
                                                   recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
-                                                  multi_task=True)
+                                                  multi_task=True, free_exploration=args.free_exploration)
                 summary_writer.add_scalar(f'eval/{eval_disp_name}', eval_r[eval_disp_name], (j+1) * args.num_processes * args.num_steps)
                 log_dict[eval_disp_name].append([(j+1) * args.num_processes * args.num_steps, eval_r[eval_disp_name]])
                 printout += eval_disp_name + ' ' + str(eval_r[eval_disp_name]) + ' '
