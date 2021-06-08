@@ -241,11 +241,6 @@ def main():
             prev_weights = copy.deepcopy(actor_critic.state_dict())
             prev_opt_state = copy.deepcopy(agent.optimizer.state_dict())
             save_copy = False
-        # torch.save([
-        #     actor_critic,
-        #     agent.optimizer.state_dict(),
-        #     getattr(utils.get_vec_normalize(envs), 'obs_rms', None)
-        # ], os.path.join(os.path.join(args.save_dir, args.algo), args.env_name + "-tmp"))
 
         value_loss, action_loss, dist_entropy = agent.update(rollouts)
 
@@ -281,14 +276,12 @@ def main():
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
             actor_critic.eval()
-            # obs_rms = utils.get_vec_normalize(envs).obs_rms
-            obs_rms = 0
+            obs_rms = utils.get_vec_normalize(envs).obs_rms
             eval_r = {}
             printout = f'Seed {args.seed} Iter {j} '
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
                 eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_envs_dic, eval_disp_name, args.seed,
                                                   args.num_processes, eval_env_name[1], logdir, device, steps=args.task_steps,
-
                                                   recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
                                                   multi_task=True, free_exploration=args.free_exploration)
                 if eval_disp_name in prev_eval_r:
