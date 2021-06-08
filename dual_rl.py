@@ -155,7 +155,7 @@ def main():
         args.num_mini_batch,
         args.value_loss_coef,
         args.entropy_coef,
-        lr=args.lr,
+        lr=args.val_lr,
         eps=args.eps,
         num_tasks=args.num_processes,
         attention_policy=True,
