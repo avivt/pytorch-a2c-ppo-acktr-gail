@@ -55,13 +55,13 @@ class PPO():
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
-        attention_parameters = []
-        non_attention_parameters = []
+        self.attention_parameters = []
+        self.non_attention_parameters = []
         for name, p in actor_critic.named_parameters():
             if 'attention' in name:
-                attention_parameters.append(p)
+                self.attention_parameters.append(p)
             else:
-                non_attention_parameters.append(p)
+                self.non_attention_parameters.append(p)
 
         # no_special_grad_for_critic means that we apply a standard gradient to the critic parameters and a special
         # gradient (e.g., testgrad) to the actor parameters. To do that, we name the different parameter groups in the
@@ -81,10 +81,10 @@ class PPO():
                                         lr=lr, eps=eps, weight_decay=weight_decay)
         else:
             if attention_policy:
-                self.optimizer = optim.Adam(attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
+                self.optimizer = optim.Adam(self.attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
             else:
-                self.optimizer = optim.Adam(non_attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
-
+                self.optimizer = optim.Adam(self.non_attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
+        self.attention_policy = attention_policy
         self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
         self.use_testgrad = use_testgrad
@@ -140,7 +140,6 @@ class PPO():
         value_loss_epoch = 0
         action_loss_epoch = 0
         dist_entropy_epoch = 0
-
         for e in range(self.ppo_epoch):
             if self.actor_critic.is_recurrent:
                 # data_generators = [rollouts.recurrent_generator(
@@ -205,6 +204,12 @@ class PPO():
                     total_loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
                                          self.max_grad_norm)
+                if self.attention_policy:
+                    nn.utils.clip_grad_norm_(self.attention_parameters,
+                                             self.max_grad_norm)
+                else:
+                    nn.utils.clip_grad_norm_(self.non_attention_parameters,
+                                             self.max_grad_norm)
                 self.optimizer.step()
 
                 value_loss_epoch += value_loss.item()

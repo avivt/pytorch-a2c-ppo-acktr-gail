@@ -258,7 +258,7 @@ class MLPAttnBase(NNBase):
 
     def forward(self, inputs, rnn_hxs, masks):
         x = inputs
-        x = F.softmax(self.input_attention) * x
+        x = F.softmax(self.input_attention, dim=0) * x
 
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)

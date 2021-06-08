@@ -144,7 +144,9 @@ def main():
         args.entropy_coef,
         lr=args.lr,
         eps=args.eps,
+        num_tasks=args.num_processes,
         attention_policy=False,
+        max_grad_norm=args.max_grad_norm,
         weight_decay=args.weight_decay)
     val_agent = algo.PPO(
         actor_critic,
@@ -155,7 +157,9 @@ def main():
         args.entropy_coef,
         lr=args.lr,
         eps=args.eps,
+        num_tasks=args.num_processes,
         attention_policy=True,
+        max_grad_norm=args.max_grad_norm,
         weight_decay=args.weight_decay)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
