@@ -260,6 +260,11 @@ def get_args():
         type=float,
         default=-1e6,
         help='threshold on improvement in validation reward for reverting the gradient update')
+    parser.add_argument(
+        '--hard_attn',
+        action='store_true',
+        default=False,
+        help='use hard attention in val agent')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

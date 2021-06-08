@@ -13,7 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.arguments import get_args
 from a2c_ppo_acktr.envs import make_vec_envs
-from a2c_ppo_acktr.model import Policy, MLPAttnBase
+from a2c_ppo_acktr.model import Policy, MLPAttnBase, MLPHardAttnBase
 from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 from a2c_ppo_acktr.utils import save_obj, load_obj
@@ -118,12 +118,18 @@ def main():
                                                       free_exploration=args.free_exploration)
     prev_eval_r = {}
     print('done')
-
-    actor_critic = Policy(
-        envs.observation_space.shape,
-        envs.action_space,
-        base=MLPAttnBase,
-        base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
+    if args.hard_attn:
+        actor_critic = Policy(
+            envs.observation_space.shape,
+            envs.action_space,
+            base=MLPHardAttnBase,
+            base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
+    else:
+        actor_critic = Policy(
+            envs.observation_space.shape,
+            envs.action_space,
+            base=MLPAttnBase,
+            base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
     actor_critic.to(device)
 
     if (args.continue_from_epoch > 0) and args.save_dir != "":
