@@ -116,12 +116,14 @@ def main():
                          args.gamma, args.log_dir, device, False, steps=args.task_steps,
                          free_exploration=args.free_exploration, recurrent=args.recurrent_policy,
                          obs_recurrent=args.obs_recurrent, multi_task=True)
-    eval_envs = {}
+
+    eval_envs_dic = {}
     for eval_disp_name, eval_env_name in EVAL_ENVS.items():
-        eval_envs[eval_disp_name] = make_vec_envs(eval_env_name[0], args.seed, 1,
-                                                  None, logdir, device, True, steps=args.task_steps,
-                                                  recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
-                                                  multi_task=True, free_exploration=args.free_exploration)
+        eval_envs_dic[eval_disp_name] = make_vec_envs(eval_env_name[0], args.seed, args.num_processes,
+                                                      None, logdir, device, True, steps=args.task_steps,
+                                                      recurrent=args.recurrent_policy,
+                                                      obs_recurrent=args.obs_recurrent, multi_task=True,
+                                                      free_exploration=args.free_exploration)
     prev_eval_r = {}
     print('done')
 
@@ -279,13 +281,14 @@ def main():
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
             actor_critic.eval()
-            obs_rms = utils.get_vec_normalize(envs).obs_rms
+            # obs_rms = utils.get_vec_normalize(envs).obs_rms
+            obs_rms = 0
             eval_r = {}
             printout = f'Seed {args.seed} Iter {j} '
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
-                # print(eval_disp_name)
-                eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_envs[eval_disp_name], args.seed,
-                                                  1, eval_env_name[1], logdir, device, steps=args.task_steps,
+                eval_r[eval_disp_name] = evaluate(actor_critic, obs_rms, eval_envs_dic, eval_disp_name, args.seed,
+                                                  args.num_processes, eval_env_name[1], logdir, device, steps=args.task_steps,
+
                                                   recurrent=args.recurrent_policy, obs_recurrent=args.obs_recurrent,
                                                   multi_task=True, free_exploration=args.free_exploration)
                 if eval_disp_name in prev_eval_r:
@@ -310,6 +313,10 @@ def main():
             actor_critic.train()
 
     save_obj(log_dict, os.path.join(logdir, 'log_dict.pkl'))
+    envs.close()
+    for eval_disp_name, eval_env_name in EVAL_ENVS.items():
+        eval_envs_dic[eval_disp_name].close()
+
 
 
 if __name__ == "__main__":

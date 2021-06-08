@@ -5,7 +5,7 @@ from a2c_ppo_acktr import utils
 from a2c_ppo_acktr.envs import make_vec_envs
 
 
-def evaluate(actor_critic, obs_rms, eval_envs, seed, num_processes, num_tasks, eval_log_dir,
+def evaluate(actor_critic, obs_rms, eval_envs_dic, env_name, seed, num_processes, num_tasks, eval_log_dir,
              device, **kwargs):
     eval_episode_rewards = []
 
