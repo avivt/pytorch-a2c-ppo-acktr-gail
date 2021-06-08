@@ -5,14 +5,11 @@ from a2c_ppo_acktr import utils
 from a2c_ppo_acktr.envs import make_vec_envs
 
 
-def evaluate(actor_critic, obs_rms, env_name, seed, num_processes, eval_log_dir,
+def evaluate(actor_critic, obs_rms, eval_envs, seed, num_processes, num_tasks, eval_log_dir,
              device, **kwargs):
     eval_episode_rewards = []
 
-    eval_envs = make_vec_envs(env_name, seed + num_processes, num_processes,
-                              None, eval_log_dir, device, True, **kwargs)
-
-    for iter in range(0, 100, num_processes):
+    for iter in range(0, num_tasks, num_processes):
         for i in range(num_processes):
             eval_envs.set_task_id(task_id=iter+i, indices=i)
         vec_norm = utils.get_vec_normalize(eval_envs)
@@ -46,9 +43,9 @@ def evaluate(actor_critic, obs_rms, env_name, seed, num_processes, eval_log_dir,
             for info in infos:
                 if 'episode' in info.keys():
                     eval_episode_rewards.append(info['episode']['r'])
-    eval_envs.close()
+    # eval_envs.close()
 
 
     # print(" Evaluation using {} episodes: mean reward {:.5f}\n".format(
     #     len(eval_episode_rewards), np.mean(eval_episode_rewards)))
-    return np.mean(eval_episode_rewards)
+    return eval_episode_rewards
