@@ -35,6 +35,7 @@ class PPO():
                  meanvar_beta=1.0,
                  use_graddrop=False,
                  no_special_grad_for_critic=False,
+                 attention_policy=False,
                  max_task_grad_norm=1.0,
                  testgrad_alpha=1.0,
                  testgrad_beta=1.0,
@@ -54,6 +55,14 @@ class PPO():
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
+        attention_parameters = []
+        non_attention_parameters = []
+        for name, p in actor_critic.named_parameters():
+            if 'attention' in name:
+                attention_parameters.append(p)
+            else:
+                non_attention_parameters.append(p)
+
         # no_special_grad_for_critic means that we apply a standard gradient to the critic parameters and a special
         # gradient (e.g., testgrad) to the actor parameters. To do that, we name the different parameter groups in the
         # optimizer, and modify the special gradient code to take that into account
@@ -71,7 +80,10 @@ class PPO():
                                          'special_grad': True}],
                                         lr=lr, eps=eps, weight_decay=weight_decay)
         else:
-            self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps, weight_decay=weight_decay)
+            if attention_policy:
+                self.optimizer = optim.Adam(attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
+            else:
+                self.optimizer = optim.Adam(non_attention_parameters, lr=lr, eps=eps, weight_decay=weight_decay)
 
         self.max_task_grad_norm = max_task_grad_norm
         self.use_pcgrad = use_pcgrad
