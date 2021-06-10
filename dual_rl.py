@@ -243,11 +243,6 @@ def main():
 
         # validation rollouts
         for val_iter in range(args.val_agent_steps):
-
-            val_obs = val_envs.reset()
-            val_rollouts.obs[0].copy_(val_obs)
-            val_rollouts.to(device)
-
             for step in range(args.num_steps):
                 # Sample actions
                 actor_critic.eval()
