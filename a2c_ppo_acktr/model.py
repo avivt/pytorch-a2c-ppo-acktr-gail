@@ -347,15 +347,22 @@ class MLPHardAttnReinforceBase(NNBase):
 
     def forward(self, inputs, rnn_hxs, masks):
         x = inputs
-        # probs = F.softmax(self.input_attention, dim=0)
-        probs = torch.sigmoid(self.input_attention.repeat([inputs.shape[0], 1]))
-        # probs = probs / torch.max(probs)
-        probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
-        m_soft = probs.sample()
-        attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
+        #  hack to fins out if we are in training or inference
+        if x.size(0) == rnn_hxs.size(0):
+            # inference
+            probs = torch.sigmoid(self.input_attention.repeat([inputs.shape[0], 1]))
+            probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
+            m_soft = probs.sample()
+            attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
+        else:
+            # training
+            probs = torch.sigmoid(self.input_attention)
+            probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
+            m_soft = probs.sample().repeat([inputs.shape[0], 1])
+            attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
+
         mask = 0.5 * (torch.sign(m_soft - 0.5) + 1)
         x = mask * x
-
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
