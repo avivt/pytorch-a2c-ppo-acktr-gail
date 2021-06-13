@@ -54,10 +54,7 @@ class Policy(nn.Module):
         raise NotImplementedError
 
     def act(self, inputs, rnn_hxs, masks, deterministic=False, attention_act=False):
-        if attention_act:
-            value, actor_features, rnn_hxs, attn_log_probs = self.base(inputs, rnn_hxs, masks)
-        else:
-            value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
+        value, actor_features, rnn_hxs, attn_log_probs = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
 
         if deterministic:
@@ -74,11 +71,11 @@ class Policy(nn.Module):
         return value, action, action_log_probs, rnn_hxs
 
     def get_value(self, inputs, rnn_hxs, masks):
-        value, _, _ = self.base(inputs, rnn_hxs, masks)
+        value, _, _, _ = self.base(inputs, rnn_hxs, masks)
         return value
 
     def evaluate_actions(self, inputs, rnn_hxs, masks, action):
-        value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
+        value, actor_features, rnn_hxs, _ = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
 
         action_log_probs = dist.log_probs(action)
@@ -234,7 +231,7 @@ class MLPBase(NNBase):
         hidden_critic = self.critic(x)
         hidden_actor = self.actor(x)
 
-        return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs
+        return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs, None
 
 
 class MLPAttnBase(NNBase):
@@ -350,8 +347,9 @@ class MLPHardAttnReinforceBase(NNBase):
         x = inputs
         probs = F.softmax(self.input_attention, dim=0)
         probs = probs / torch.max(probs)
-        m_soft = RelaxedBernoulli(1.0, probs=probs).sample()
-        attn_log_probs = RelaxedBernoulli(1.0, probs=probs).log_prob(m_soft)
+        probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
+        m_soft = probs.sample()
+        attn_log_probs = probs.log_prob(m_soft)
         mask = 0.5 * (torch.sign(m_soft - 0.5) + 1)
         x = mask * x
 
