@@ -13,7 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from a2c_ppo_acktr import algo, utils
 from a2c_ppo_acktr.arguments import get_args
 from a2c_ppo_acktr.envs import make_vec_envs
-from a2c_ppo_acktr.model import Policy, MLPAttnBase, MLPHardAttnBase
+from a2c_ppo_acktr.model import Policy, MLPAttnBase, MLPHardAttnBase, MLPHardAttnReinforceBase
 from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
 from a2c_ppo_acktr.utils import save_obj, load_obj
@@ -119,11 +119,18 @@ def main():
     prev_eval_r = {}
     print('done')
     if args.hard_attn:
-        actor_critic = Policy(
-            envs.observation_space.shape,
-            envs.action_space,
-            base=MLPHardAttnBase,
-            base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
+        if args.val_reinforce_update:
+            actor_critic = Policy(
+                envs.observation_space.shape,
+                envs.action_space,
+                base=MLPHardAttnReinforceBase,
+                base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
+        else:
+            actor_critic = Policy(
+                envs.observation_space.shape,
+                envs.action_space,
+                base=MLPHardAttnBase,
+                base_kwargs={'recurrent': args.recurrent_policy or args.obs_recurrent})
     else:
         actor_critic = Policy(
             envs.observation_space.shape,
@@ -247,11 +254,18 @@ def main():
             for step in range(args.num_steps):
                 # Sample actions
                 actor_critic.eval()
-                with torch.no_grad():
-                    value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
-                        val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
-                        val_rollouts.masks[step])
-                actor_critic.train()
+                if args.val_reinforce_update:
+                    with torch.no_grad():
+                        value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                            val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
+                            val_rollouts.masks[step], deterministic=True, attention_act=False)
+                    actor_critic.train()
+                else:
+                    with torch.no_grad():
+                        value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                            val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
+                            val_rollouts.masks[step])
+                    actor_critic.train()
 
                 # Obser reward and next obs
                 obs, reward, done, infos = val_envs.step(action)

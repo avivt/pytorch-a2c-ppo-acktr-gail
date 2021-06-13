@@ -53,8 +53,11 @@ class Policy(nn.Module):
     def forward(self, inputs, rnn_hxs, masks):
         raise NotImplementedError
 
-    def act(self, inputs, rnn_hxs, masks, deterministic=False):
-        value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
+    def act(self, inputs, rnn_hxs, masks, deterministic=False, attention_act=False):
+        if attention_act:
+            value, actor_features, rnn_hxs, attn_log_probs = self.base(inputs, rnn_hxs, masks)
+        else:
+            value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
 
         if deterministic:
@@ -62,7 +65,10 @@ class Policy(nn.Module):
         else:
             action = dist.sample()
 
-        action_log_probs = dist.log_probs(action)
+        if attention_act:
+            action_log_probs = attn_log_probs
+        else:
+            action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
 
         return value, action, action_log_probs, rnn_hxs
@@ -312,3 +318,48 @@ class MLPHardAttnBase(NNBase):
         hidden_actor = self.actor(x)
 
         return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs
+
+
+class MLPHardAttnReinforceBase(NNBase):
+    def __init__(self, num_inputs, recurrent=False, hidden_size=64):
+        super(MLPHardAttnReinforceBase, self).__init__(recurrent, num_inputs, hidden_size)
+
+        num_obs_input = num_inputs
+
+        if recurrent:
+            num_inputs = hidden_size
+
+        init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.
+                               constant_(x, 0), np.sqrt(2))
+
+        self.input_attention = nn.Parameter(torch.zeros(num_obs_input), requires_grad=True)
+
+        self.actor = nn.Sequential(
+            init_(nn.Linear(num_inputs, hidden_size)), nn.Tanh(),
+            init_(nn.Linear(hidden_size, hidden_size)), nn.Tanh())
+
+        self.critic = nn.Sequential(
+            init_(nn.Linear(num_inputs, hidden_size)), nn.Tanh(),
+            init_(nn.Linear(hidden_size, hidden_size)), nn.Tanh())
+
+        self.critic_linear = init_(nn.Linear(hidden_size, 1))
+
+        self.train()
+
+    def forward(self, inputs, rnn_hxs, masks):
+        x = inputs
+        probs = F.softmax(self.input_attention, dim=0)
+        probs = probs / torch.max(probs)
+        m_soft = RelaxedBernoulli(1.0, probs=probs).sample()
+        attn_log_probs = RelaxedBernoulli(1.0, probs=probs).log_prob(m_soft)
+        mask = 0.5 * (torch.sign(m_soft - 0.5) + 1)
+        x = mask * x
+
+        if self.is_recurrent:
+            x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
+
+        hidden_critic = self.critic(x)
+        hidden_actor = self.actor(x)
+
+        return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs, attn_log_probs
+
