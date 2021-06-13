@@ -67,18 +67,20 @@ class Policy(nn.Module):
         else:
             action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
-
         return value, action, action_log_probs, rnn_hxs
 
     def get_value(self, inputs, rnn_hxs, masks):
         value, _, _, _ = self.base(inputs, rnn_hxs, masks)
         return value
 
-    def evaluate_actions(self, inputs, rnn_hxs, masks, action):
-        value, actor_features, rnn_hxs, _ = self.base(inputs, rnn_hxs, masks)
+    def evaluate_actions(self, inputs, rnn_hxs, masks, action, attention_act=False):
+        value, actor_features, rnn_hxs, attn_log_probs = self.base(inputs, rnn_hxs, masks)
         dist = self.dist(actor_features)
 
-        action_log_probs = dist.log_probs(action)
+        if attention_act:
+            action_log_probs = attn_log_probs
+        else:
+            action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
 
         return value, action_log_probs, dist_entropy, rnn_hxs
@@ -345,11 +347,12 @@ class MLPHardAttnReinforceBase(NNBase):
 
     def forward(self, inputs, rnn_hxs, masks):
         x = inputs
-        probs = F.softmax(self.input_attention, dim=0)
-        probs = probs / torch.max(probs)
+        # probs = F.softmax(self.input_attention, dim=0)
+        probs = torch.sigmoid(self.input_attention.repeat([inputs.shape[0], 1]))
+        # probs = probs / torch.max(probs)
         probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
         m_soft = probs.sample()
-        attn_log_probs = probs.log_prob(m_soft)
+        attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
         mask = 0.5 * (torch.sign(m_soft - 0.5) + 1)
         x = mask * x
 
@@ -358,6 +361,5 @@ class MLPHardAttnReinforceBase(NNBase):
 
         hidden_critic = self.critic(x)
         hidden_actor = self.actor(x)
-
         return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs, attn_log_probs
 
