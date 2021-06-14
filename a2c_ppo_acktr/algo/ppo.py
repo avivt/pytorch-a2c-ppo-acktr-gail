@@ -163,8 +163,10 @@ class PPO():
                     # Reshape to do in a single forward pass for all steps
                     values, action_log_probs, dist_entropy, _ = self.actor_critic.evaluate_actions(
                         obs_batch, recurrent_hidden_states_batch, masks_batch, attn_masks_batch,
-                        actions_batch)
+                        actions_batch, attention_act=attention_update)
 
+                    # if attention_update=True, we assume that the log_probs are the attention log_probs.
+                    # This is a hack for now, and it is taken care of in model.py and in dual_rl.py
                     ratio = torch.exp(action_log_probs -
                                       old_action_log_probs_batch)
                     surr1 = ratio * adv_targ
