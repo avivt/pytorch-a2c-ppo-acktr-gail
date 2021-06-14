@@ -206,9 +206,9 @@ def main():
             # Sample actions
             actor_critic.eval()
             with torch.no_grad():
-                value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                value, action, action_log_prob, recurrent_hidden_states, attn_masks = actor_critic.act(
                     rollouts.obs[step], rollouts.recurrent_hidden_states[step],
-                    rollouts.masks[step])
+                    rollouts.masks[step], rollouts.attn_masks[step])
             actor_critic.train()
 
             # Obser reward and next obs
@@ -227,7 +227,7 @@ def main():
                 [[0.0] if 'bad_transition' in info.keys() else [1.0]
                  for info in infos])
             rollouts.insert(obs, recurrent_hidden_states, action,
-                            action_log_prob, value, reward, masks, bad_masks)
+                            action_log_prob, value, reward, masks, bad_masks, attn_masks)
 
         actor_critic.eval()
         with torch.no_grad():
@@ -256,16 +256,17 @@ def main():
                 actor_critic.eval()
                 if args.val_reinforce_update:
                     with torch.no_grad():
-                        value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                        value, action, action_log_prob, recurrent_hidden_states, attn_masks = actor_critic.act(
                             val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
-                            val_rollouts.masks[step], deterministic=True, attention_act=False)
+                            val_rollouts.masks[step], val_rollouts.attn_masks[step], deterministic=True, attention_act=False)
                     actor_critic.train()
                 else:
                     with torch.no_grad():
-                        value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                        value, action, action_log_prob, recurrent_hidden_states, attn_masks = actor_critic.act(
                             val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
                             val_rollouts.masks[step])
                     actor_critic.train()
+                    raise "not implemented"
 
                 # Obser reward and next obs
                 obs, reward, done, infos = val_envs.step(action)
@@ -281,7 +282,7 @@ def main():
                     [[0.0] if 'bad_transition' in info.keys() else [1.0]
                      for info in infos])
                 val_rollouts.insert(obs, recurrent_hidden_states, action,
-                                    action_log_prob, value, reward, masks, bad_masks)
+                                    action_log_prob, value, reward, masks, bad_masks, attn_masks)
 
             actor_critic.eval()
             with torch.no_grad():
