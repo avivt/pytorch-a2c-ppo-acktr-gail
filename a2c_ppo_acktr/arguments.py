@@ -275,6 +275,11 @@ def get_args():
         action='store_true',
         default=False,
         help='use hard attention in val agent')
+    parser.add_argument(
+        '--no_normalize',
+        action='store_true',
+        default=False,
+        help='no normalize inputs')
     args = parser.parse_args()
 
     args.cuda = not args.no_cuda and torch.cuda.is_available()

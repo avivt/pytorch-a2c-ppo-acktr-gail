@@ -102,12 +102,12 @@ def main():
     envs = make_vec_envs(args.env_name, args.seed, args.num_processes,
                          args.gamma, args.log_dir, device, False, steps=args.task_steps,
                          free_exploration=args.free_exploration, recurrent=args.recurrent_policy,
-                         obs_recurrent=args.obs_recurrent, multi_task=True)
+                         obs_recurrent=args.obs_recurrent, multi_task=True, normalize=not args.no_normalize)
 
     val_envs = make_vec_envs(args.val_env_name, args.seed, args.num_processes,
                              args.gamma, args.log_dir, device, False, steps=args.task_steps,
                              free_exploration=args.free_exploration, recurrent=args.recurrent_policy,
-                             obs_recurrent=args.obs_recurrent, multi_task=True)
+                             obs_recurrent=args.obs_recurrent, multi_task=True, normalize=not args.no_normalize)
 
     eval_envs_dic = {}
     for eval_disp_name, eval_env_name in EVAL_ENVS.items():
@@ -115,7 +115,7 @@ def main():
                                                       None, logdir, device, True, steps=args.task_steps,
                                                       recurrent=args.recurrent_policy,
                                                       obs_recurrent=args.obs_recurrent, multi_task=True,
-                                                      free_exploration=args.free_exploration)
+                                                      free_exploration=args.free_exploration, normalize=not args.no_normalize)
     prev_eval_r = {}
     print('done')
     if args.hard_attn:
@@ -330,7 +330,7 @@ def main():
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):
             actor_critic.eval()
-            obs_rms = utils.get_vec_normalize(envs).obs_rms
+            obs_rms = None if args.no_normalize else utils.get_vec_normalize(envs).obs_rms
             eval_r = {}
             printout = f'Seed {args.seed} Iter {j} '
             for eval_disp_name, eval_env_name in EVAL_ENVS.items():
