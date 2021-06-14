@@ -258,7 +258,7 @@ def main():
                     with torch.no_grad():
                         value, action, action_log_prob, recurrent_hidden_states, attn_masks = actor_critic.act(
                             val_rollouts.obs[step], val_rollouts.recurrent_hidden_states[step],
-                            val_rollouts.masks[step], val_rollouts.attn_masks[step], deterministic=True, attention_act=False)
+                            val_rollouts.masks[step], val_rollouts.attn_masks[step], deterministic=True, attention_act=True)
                     actor_critic.train()
                 else:
                     with torch.no_grad():
