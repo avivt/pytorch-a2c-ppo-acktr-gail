@@ -166,8 +166,8 @@ def main():
         args.clip_param,
         args.ppo_epoch,
         args.num_mini_batch,
-        args.value_loss_coef,
-        args.entropy_coef,
+        value_loss_coef=0.0,
+        entropy_coef=args.entropy_coef,
         lr=args.val_lr,
         eps=args.eps,
         num_tasks=args.num_processes,
@@ -293,8 +293,7 @@ def main():
 
             val_rollouts.compute_returns(next_value, args.use_gae, args.gamma,
                                          args.gae_lambda, args.use_proper_time_limits)
-
-            val_value_loss, val_action_loss, val_dist_entropy = val_agent.update(val_rollouts)
+            val_value_loss, val_action_loss, val_dist_entropy = val_agent.update(val_rollouts, attention_update=True)
             val_rollouts.after_update()
 
         # save for every interval-th episode or for the last epoch
@@ -326,6 +325,7 @@ def main():
                         np.median(val_episode_rewards), np.min(val_episode_rewards),
                         np.max(val_episode_rewards), dist_entropy, value_loss,
                         action_loss))
+            print(actor_critic.base.input_attention)
         revert = False
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):

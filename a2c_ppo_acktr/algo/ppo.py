@@ -132,7 +132,7 @@ class PPO():
             )
             privacy_engine.attach(self.optimizer)
 
-    def update(self, rollouts):
+    def update(self, rollouts, attention_update=False):
         advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
         advantages = (advantages - advantages.mean()) / (
             advantages.std() + 1e-5)

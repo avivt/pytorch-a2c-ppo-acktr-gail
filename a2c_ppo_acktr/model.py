@@ -58,6 +58,7 @@ class Policy(nn.Module):
             value, actor_features, rnn_hxs, attn_log_probs, attn_mask = self.base(inputs, rnn_hxs, masks, attn_masks)
         else:
             value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
+
         dist = self.dist(actor_features)
 
         if deterministic:
@@ -70,17 +71,16 @@ class Policy(nn.Module):
         else:
             action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
-
         return value, action, action_log_probs, rnn_hxs
 
     def get_value(self, inputs, rnn_hxs, masks):
-        value, _, _ = self.base(inputs, rnn_hxs, masks)
+        value, _, _, _ = self.base(inputs, rnn_hxs, masks)
         return value
 
     def evaluate_actions(self, inputs, rnn_hxs, masks, attn_masks, action, attention_act=False):
         if attention_act:
             # evaluate log probs of attention masks
-            action_log_probs = attn_log_probs
+            action_log_probs = self.base.attn_log_probs(attn_masks)
             dist_entropy = None
         else:
             # evaluate log probs of actions
@@ -239,7 +239,7 @@ class MLPBase(NNBase):
         hidden_critic = self.critic(x)
         hidden_actor = self.actor(x)
 
-        return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs
+        return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs, None
 
 
 class MLPAttnBase(NNBase):
@@ -353,23 +353,25 @@ class MLPHardAttnReinforceBase(NNBase):
 
     def forward(self, inputs, rnn_hxs, masks, attn_masks):
         x = inputs
-        probs = F.softmax(self.input_attention, dim=0)
-        probs = probs / torch.max(probs)
-        m_soft = RelaxedBernoulli(1.0, probs=probs).sample()
-        attn_log_probs = RelaxedBernoulli(1.0, probs=probs).log_prob(m_soft)
+        probs = torch.sigmoid(self.input_attention.repeat([inputs.shape[0], 1]))
+        probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
+        m_soft = probs.sample()
+        attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
         new_attn_masks = 0.5 * (torch.sign(m_soft - 0.5) + 1)
         if attn_masks is not None:
             attn_masks = new_attn_masks * (1 - masks) + attn_masks * masks
         else:
             raise "this shouldn't happen"
         x = attn_masks * x
-
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
 
         hidden_critic = self.critic(x)
         hidden_actor = self.actor(x)
-
         return self.critic_linear(hidden_critic), hidden_actor, rnn_hxs, attn_log_probs, attn_masks
 
     def attn_log_probs(self, attn_masks):
+        probs = torch.sigmoid(self.input_attention.repeat([attn_masks.shape[0], 1]))
+        probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
+        attn_log_probs = probs.log_prob(attn_masks).sum(dim=1).reshape([attn_masks.shape[0], 1])
+        return attn_log_probs
