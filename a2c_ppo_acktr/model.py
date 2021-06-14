@@ -54,10 +54,10 @@ class Policy(nn.Module):
         raise NotImplementedError
 
     def act(self, inputs, rnn_hxs, masks, attn_masks=None, deterministic=False, attention_act=False):
-        if attention_act:
-            value, actor_features, rnn_hxs, attn_log_probs, attn_mask = self.base(inputs, rnn_hxs, masks, attn_masks)
-        else:
-            value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks)
+        # if attention_act:
+        value, actor_features, rnn_hxs, attn_log_probs, attn_masks = self.base(inputs, rnn_hxs, masks, attn_masks)
+        # else:
+        #     value, actor_features, rnn_hxs = self.base(inputs, rnn_hxs, masks, attn_masks)
 
         dist = self.dist(actor_features)
 
@@ -71,23 +71,22 @@ class Policy(nn.Module):
         else:
             action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
-        return value, action, action_log_probs, rnn_hxs
+        return value, action, action_log_probs, rnn_hxs, attn_masks
 
-    def get_value(self, inputs, rnn_hxs, masks):
-        value, _, _, _ = self.base(inputs, rnn_hxs, masks)
+    def get_value(self, inputs, rnn_hxs, masks, attn_masks):
+        value, _, _, _, _ = self.base(inputs, rnn_hxs, masks, attn_masks)
         return value
 
     def evaluate_actions(self, inputs, rnn_hxs, masks, attn_masks, action, attention_act=False):
+
+        # evaluate log probs of actions
+        value, actor_features, rnn_hxs, attn_log_probs, attn_mask = self.base(inputs, rnn_hxs, masks, attn_masks)
+        dist = self.dist(actor_features)
+        action_log_probs = dist.log_probs(action)
+        dist_entropy = dist.entropy().mean()
         if attention_act:
             # evaluate log probs of attention masks
             action_log_probs = self.base.attn_log_probs(attn_masks)
-            dist_entropy = None
-        else:
-            # evaluate log probs of actions
-            value, actor_features, rnn_hxs, attn_log_probs, attn_mask = self.base(inputs, rnn_hxs, masks, attn_masks)
-            dist = self.dist(actor_features)
-            action_log_probs = dist.log_probs(action)
-            dist_entropy = dist.entropy().mean()
 
         return value, action_log_probs, dist_entropy, rnn_hxs
 

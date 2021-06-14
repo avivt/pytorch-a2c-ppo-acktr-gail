@@ -167,7 +167,7 @@ def main():
         args.ppo_epoch,
         args.num_mini_batch,
         value_loss_coef=0.0,
-        entropy_coef=args.entropy_coef,
+        entropy_coef=0.0,  # we don't implement entropy for reinforce update
         lr=args.val_lr,
         eps=args.eps,
         num_tasks=args.num_processes,
@@ -233,7 +233,7 @@ def main():
         with torch.no_grad():
             next_value = actor_critic.get_value(
                 rollouts.obs[-1], rollouts.recurrent_hidden_states[-1],
-                rollouts.masks[-1]).detach()
+                rollouts.masks[-1], rollouts.attn_masks[-1]).detach()
         actor_critic.train()
 
         rollouts.compute_returns(next_value, args.use_gae, args.gamma,
@@ -288,7 +288,7 @@ def main():
             with torch.no_grad():
                 next_value = actor_critic.get_value(
                     val_rollouts.obs[-1], val_rollouts.recurrent_hidden_states[-1],
-                    val_rollouts.masks[-1]).detach()
+                    val_rollouts.masks[-1], val_rollouts.attn_masks[-1]).detach()
             actor_critic.train()
 
             val_rollouts.compute_returns(next_value, args.use_gae, args.gamma,
