@@ -336,7 +336,7 @@ class MLPHardAttnReinforceBase(NNBase):
         init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.
                                constant_(x, 0), np.sqrt(2))
 
-        self.input_attention = nn.Parameter(torch.zeros(num_obs_input), requires_grad=True)
+        self.input_attention = nn.Parameter(torch.ones(num_obs_input), requires_grad=True)
 
         self.actor = nn.Sequential(
             init_(nn.Linear(num_inputs, hidden_size)), nn.Tanh(),
