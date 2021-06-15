@@ -215,7 +215,7 @@ class RolloutStorage(object):
             value_preds_batch.append(self.value_preds[:-1, ind])
             return_batch.append(self.returns[:-1, ind])
             masks_batch.append(self.masks[:-1, ind])
-            attn_masks_batch.append(self.attn_masks[:-1, ind])
+            attn_masks_batch.append(self.attn_masks[1:, ind])
             old_action_log_probs_batch.append(
                 self.action_log_probs[:, ind])
             adv_targ.append(advantages[:, ind])

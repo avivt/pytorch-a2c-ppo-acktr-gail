@@ -78,9 +78,9 @@ class Policy(nn.Module):
         return value
 
     def evaluate_actions(self, inputs, rnn_hxs, masks, attn_masks, action, attention_act=False):
-
         # evaluate log probs of actions
-        value, actor_features, rnn_hxs, attn_log_probs, attn_mask = self.base(inputs, rnn_hxs, masks, attn_masks)
+        value, actor_features, rnn_hxs, attn_log_probs, _ = self.base(inputs, rnn_hxs, masks, attn_masks,
+                                                                              reuse_masks=True)
         dist = self.dist(actor_features)
         action_log_probs = dist.log_probs(action)
         dist_entropy = dist.entropy().mean()
@@ -350,17 +350,17 @@ class MLPHardAttnReinforceBase(NNBase):
 
         self.train()
 
-    def forward(self, inputs, rnn_hxs, masks, attn_masks):
+    def forward(self, inputs, rnn_hxs, masks, attn_masks, reuse_masks=False):
         x = inputs
         probs = torch.sigmoid(self.input_attention.repeat([inputs.shape[0], 1]))
         probs = torch.distributions.bernoulli.Bernoulli(probs=probs)
-        m_soft = probs.sample()
-        attn_log_probs = probs.log_prob(m_soft).sum(dim=1).reshape([inputs.shape[0], 1])
-        new_attn_masks = 0.5 * (torch.sign(m_soft - 0.5) + 1)
+        m_soft = attn_masks if reuse_masks else probs.sample()
+        new_attn_masks = m_soft
         if attn_masks is not None:
             attn_masks = new_attn_masks * (1 - masks) + attn_masks * masks
         else:
             raise "this shouldn't happen"
+        attn_log_probs = probs.log_prob(attn_masks).sum(dim=1).reshape([inputs.shape[0], 1])
         x = attn_masks * x
         if self.is_recurrent:
             x, rnn_hxs = self._forward_gru(x, rnn_hxs, masks)
