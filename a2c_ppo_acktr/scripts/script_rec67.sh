@@ -20,4 +20,11 @@ sleep 3
 wait
 
 echo "obs recurrent 25 arms with 25 val=training arms, as a baseline, free exploration, dual_rl. Checking different hyperparamaters hard attention, now with REINFORCE updates"
-
+echo "
+Seed 6 Iter 3845 ten_arms 0.96 many_arms 0.14
+Seed 3 Iter 3945 ten_arms 0.96 many_arms 0.15
+Seed 4 Iter 3915 ten_arms 1.0 many_arms 0.17
+Seed 1 Iter 3835 ten_arms 1.0 many_arms 0.1
+Seed 2 Iter 3990 ten_arms 1.0 many_arms 0.14
+Seed 5 Iter 3960 ten_arms 1.0 many_arms 0.15
+"
