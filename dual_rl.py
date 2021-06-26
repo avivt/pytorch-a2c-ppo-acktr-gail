@@ -36,8 +36,7 @@ def main():
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-    logdir = args.env_name + '_' + args.algo + '_num_arms_' + str(args.num_processes) + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
-    logdir = os.path.join('runs', logdir)
+    logdir = args.env_name + '_' + args.val_env_name + '_' + args.seed + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
     logdir = os.path.join(os.path.expanduser(args.log_dir), logdir)
     utils.cleanup_log_dir(logdir)
 
@@ -53,7 +52,7 @@ def main():
         log_dict[eval_disp_name] = []
 
     # Tensorboard logging
-    summary_writer = SummaryWriter()
+    summary_writer = SummaryWriter(log_dir=logdir)
     summary_writer.add_hparams({'task_steps': args.task_steps,
                                 'seed': args.seed,
                                 'recurrent': args.recurrent_policy,
@@ -239,17 +238,11 @@ def main():
 
         # save for every interval-th episode or for the last epoch
         if (j % args.save_interval == 0
-                or j == num_updates - 1) and args.save_dir != "":
-            save_path = os.path.join(args.save_dir, args.algo)
-            try:
-                os.makedirs(save_path)
-            except OSError:
-                pass
-
+                or j == num_updates - 1):
             torch.save([
                 actor_critic,
                 getattr(utils.get_vec_normalize(envs), 'obs_rms', None)
-            ], os.path.join(save_path, args.env_name + "-epoch-{}.pt".format(j)))
+            ], os.path.join(logdir, args.env_name + "-epoch-{}.pt".format(j)))
 
         # print some stats
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
