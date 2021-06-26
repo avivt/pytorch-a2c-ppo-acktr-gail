@@ -36,7 +36,7 @@ def main():
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
 
-    logdir = args.env_name + '_' + args.val_env_name + '_' + args.seed + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
+    logdir = args.env_name + '_' + args.val_env_name + '_' + str(args.seed) + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
     logdir = os.path.join(os.path.expanduser(args.log_dir), logdir)
     utils.cleanup_log_dir(logdir)
 
