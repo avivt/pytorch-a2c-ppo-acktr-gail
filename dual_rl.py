@@ -46,6 +46,8 @@ def main():
         'seed': args.seed,
         'recurrent': args.recurrent_policy,
         'obs_recurrent': args.obs_recurrent,
+        'train_env': args.env_name,
+        'test_env': args.val_env_name,
         'cmd': ' '.join(sys.argv[1:])
     }
     for eval_disp_name, eval_env_name in EVAL_ENVS.items():
@@ -57,6 +59,8 @@ def main():
                                 'seed': args.seed,
                                 'recurrent': args.recurrent_policy,
                                 'obs_recurrent': args.obs_recurrent,
+                                'train_env': args.env_name,
+                                'test_env': args.val_env_name,
                                 'cmd': ' '.join(sys.argv[1:])}, {})
 
     torch.set_num_threads(1)
